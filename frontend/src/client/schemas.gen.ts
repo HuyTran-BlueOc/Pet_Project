@@ -182,6 +182,115 @@ export const ItemsPublicSchema = {
   title: "ItemsPublic",
 } as const
 
+export const CategoryCreateSchema = {
+  properties: {
+    title: {
+      type: "string",
+      maxLength: 255,
+      minLength: 1,
+      title: "Title",
+    },
+    decsription: {
+      anyOf: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null"
+        },
+      ], title: "Decreiption",
+    },
+  },
+  type: "object",
+  required: ["title"],
+  title: "CategoryCreate",
+} as const
+
+export const CategoryPublicSchema = {
+  properties: {
+    title: {
+      type: "string",
+      maxLength: 255,
+      minLength: 1,
+      title: "Title",
+    },
+    description: {
+      anyOf: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+      title: "Description",
+    },
+    id: {
+      type:"string",
+      format: "uuid",
+      title: "Id",
+    },
+  },
+  type: "object",
+  required: ["title", "id"],
+  title:"CategoryPublic",
+} as const
+
+export const CategoryUpdateSchema = {
+  properties: {
+    title: {
+      anyOf: [
+        {
+          type: "string",
+          maxLength: 255,
+          minLength: 1,
+        },
+        {
+          type: "null",
+        },
+      ],
+      title: "Title",
+    },
+    description: {
+      anyOf: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+      title: "Description",
+    },
+  },
+  type: "object",
+  title: "CategoryUpdate",
+} as const
+
+export const CategoriesPublicSchema = {
+  properties: {
+    data: {
+      items: {
+        $ref: "#/components/schemas/CategoryPublic",
+      },
+      type: "array",
+      title: "Data",
+    },
+    count: {
+      type: "integer",
+      title: "Count",
+    },
+  },
+  type: "object",
+  required: ["data", "count"],
+  title: "CategoriesPublic",
+} as const
+
+// 
+
 export const MessageSchema = {
   properties: {
     message: {

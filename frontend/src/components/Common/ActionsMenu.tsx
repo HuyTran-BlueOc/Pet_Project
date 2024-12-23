@@ -5,24 +5,25 @@ import {
   MenuItem,
   MenuList,
   useDisclosure,
-} from "@chakra-ui/react"
-import { BsThreeDotsVertical } from "react-icons/bs"
-import { FiEdit, FiTrash } from "react-icons/fi"
+} from "@chakra-ui/react";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiEdit, FiTrash } from "react-icons/fi";
 
-import type { ItemPublic, UserPublic } from "../../client"
-import EditUser from "../Admin/EditUser"
-import EditItem from "../Items/EditItem"
-import Delete from "./DeleteAlert"
+import type { CategoryPublic, ItemPublic, UserPublic } from "../../client";
+import EditUser from "../Admin/EditUser";
+import EditItem from "../Items/EditItem";
+import EditCategory from "../Categories/EditCategory";
+import Delete from "./DeleteAlert";
 
 interface ActionsMenuProps {
-  type: string
-  value: ItemPublic | UserPublic
-  disabled?: boolean
+  type: string;
+  value: ItemPublic | UserPublic | CategoryPublic;
+  disabled?: boolean;
 }
 
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
-  const editUserModal = useDisclosure()
-  const deleteModal = useDisclosure()
+  const editUserModal = useDisclosure();
+  const deleteModal = useDisclosure();
 
   return (
     <>
@@ -54,13 +55,19 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
             isOpen={editUserModal.isOpen}
             onClose={editUserModal.onClose}
           />
-        ) : (
+        ) : type === "Item" ? (
           <EditItem
             item={value as ItemPublic}
-            isOpen={editUserModal.isOpen}
+            isOpen={editUserModal.isOpen} // Open the same modal for Item
             onClose={editUserModal.onClose}
           />
-        )}
+        ) : type === "Category" ? (
+          <EditCategory
+            category={value as CategoryPublic}
+            isOpen={editUserModal.isOpen} // Open the same modal for Category
+            onClose={editUserModal.onClose}
+          />
+        ) : null}
         <Delete
           type={type}
           id={value.id}
@@ -69,7 +76,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         />
       </Menu>
     </>
-  )
-}
+  );
+};
 
-export default ActionsMenu
+export default ActionsMenu;

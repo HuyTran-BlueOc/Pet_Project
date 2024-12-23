@@ -35,6 +35,28 @@ export type ItemUpdate = {
   description?: string | null
 }
 
+
+export type CategoryCreate = {
+  title: string
+  description?: string | null
+}
+
+export type CategoryPublic = {
+  id: string
+  title: string
+  description?: string | null
+}
+
+export type CategoriesPublic = {
+  data: Array<CategoryPublic>
+  count: number
+}
+
+export type CategoryUpdate = {
+  title?: string | null
+  description?: string | null
+}
+
 export type Message = {
   message: string
 }
@@ -131,6 +153,42 @@ export type ItemsDeleteItemData = {
 }
 
 export type ItemsDeleteItemResponse = Message
+
+// Category 
+export type CategoriesReadCategoriesData = {
+  limit?: number
+  skip?: number
+}
+
+export type CategoriesReadCategoriesResponse = CategoriesPublic
+
+export type CategoriesCreateCategoriesData = {
+  requestBody: CategoryCreate
+}
+
+export type CategoriesCreateCategoriesResponse = CategoryPublic
+
+export type CategoriesReadCategoryData = {
+  id: string
+}
+
+export type CategoriesReadCategoryResponse = CategoryPublic
+
+export type CategoriesUpdateCategoryData = {
+  id: string
+  requestBody: CategoryUpdate
+}
+
+export type CategoriesUpdateCategoryResponse = CategoryPublic
+
+export type CategoriesDeleteCategoryData = {
+  id: string
+}
+
+export type CategoriesDeleteCategoryResponse = Message
+
+export type CategoriesDeleteCategoriesResponse = Message
+
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token

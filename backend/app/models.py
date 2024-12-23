@@ -65,7 +65,7 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    tasks: list["Task"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -80,6 +80,42 @@ class UsersPublic(SQLModel):
 # =========================
 # CATEGORY MODELS
 # =========================
+
+# Shared properties
+class CategoriesBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+
+
+# Properties to receive on item creation
+class CategoriesCreate(CategoriesBase):
+    pass
+
+
+# Properties to receive on item update
+class CategoriesUpdate(CategoriesBase):
+    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    description: str | None = Field(default=None, max_length=255, nullable=True)  # Description is optional
+
+# Database model, database table inferred from class name
+
+class Categories(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)  # UUID primary key
+    title: str = Field(max_length=255, nullable=False)  # Title is required
+    description: str | None = Field(default=None, max_length=255, nullable=True)  # Description is optional
+    tasks: list["Task"] = Relationship(back_populates="category", cascade_delete=True)
+
+# Properties to return via API, id is always required
+class CategoryPublic(CategoriesBase):
+    id: uuid.UUID
+    title: str
+    description: str | None
+
+
+class CategoriesPublic(SQLModel):
+    data: list[CategoryPublic]
+    count: int
+
 
 # =========================
 # TASK MODELS
@@ -108,18 +144,20 @@ class TaskUpdate(SQLModel):
 class Task(TaskBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
-    category_id: Optional[uuid.UUID] = Field(foreign_key="category.id", nullable=True)
+    categories_id: Optional[uuid.UUID] = Field(foreign_key="categories.id", nullable=True)
     owner: Optional[User] = Relationship(back_populates="tasks")
-    # category: Optional[Category] = Relationship(back_populates="tasks")
+    category: Optional[Categories] = Relationship(back_populates="tasks")
 class TaskPublic(TaskBase):
     id: uuid.UUID
-    owner_id: uuid.UUID
-    category_id: uuid.UUID
+    owner_id: Optional[uuid.UUID]
+    categories_id: Optional[uuid.UUID]
 
 class TasksPublic(SQLModel):
     data: list[TaskPublic]
     count: int
-
+class UsersPublic(SQLModel):
+    data: list[UserPublic]
+    count: int
 
 # =========================
 # AUTH AND GENERIC MODELS

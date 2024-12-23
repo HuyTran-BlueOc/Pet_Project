@@ -11,7 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import React from "react"
 import { useForm } from "react-hook-form"
 
-import { ItemsService, UsersService } from "../../client"
+import { CategoriesService, ItemsService, UsersService } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 
 interface DeleteProps {
@@ -31,7 +31,9 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
   } = useForm()
 
   const deleteEntity = async (id: string) => {
-    if (type === "Item") {
+    if (type === "Category"){
+      await CategoriesService.deleteCategory({ id: id })
+    } else if (type === "Item") {
       await ItemsService.deleteItem({ id: id })
     } else if (type === "User") {
       await UsersService.deleteUser({ userId: id })
@@ -47,23 +49,31 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
         "Success",
         `The ${type.toLowerCase()} was deleted successfully.`,
         "success",
-      )
-      onClose()
+      );
+      onClose();
     },
     onError: () => {
       showToast(
         "An error occurred.",
         `An error occurred while deleting the ${type.toLowerCase()}.`,
         "error",
-      )
+      );
     },
     onSettled: () => {
+      // Cập nhật queryKey để bao gồm "categories"
+      const queryKey = 
+        type === "Item"
+          ? "items"
+          : type === "User"
+          ? "users"
+          : "categories"; // Thêm "categories" nếu type là "Category"
+  
       queryClient.invalidateQueries({
-        queryKey: [type === "Item" ? "items" : "users"],
-      })
+        queryKey: [queryKey],
+      });
     },
-  })
-
+  });
+  
   const onSubmit = async () => {
     mutation.mutate(id)
   }

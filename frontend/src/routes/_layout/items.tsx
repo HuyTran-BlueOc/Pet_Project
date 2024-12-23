@@ -128,7 +128,7 @@ function Items() {
         Items Management
       </Heading>
 
-      <Navbar type={"Item"} addModalAs={AddItem} />
+      <Navbar type={"Item"} addModalAs={AddItem} deleteModalAs={AddItem} />
       <ItemsTable />
     </Container>
   )
