@@ -187,12 +187,7 @@ export type CategoriesDeleteCategoryData = {
 
 export type CategoriesDeleteCategoryResponse = Message
 
-export type CategoriesDeleteCategoriesData = {
-  id: string
-}
-
 export type CategoriesDeleteCategoriesResponse = Message
-
 
 
 export type LoginLoginAccessTokenData = {

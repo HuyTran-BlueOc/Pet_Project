@@ -53,7 +53,6 @@ import type {
   CategoriesUpdateCategoryResponse,
   CategoriesDeleteCategoryData,
   CategoriesDeleteCategoryResponse,
-  CategoriesDeleteCategoriesData,
   CategoriesDeleteCategoriesResponse,
   CategoriesCreateCategoriesResponse,
 } from "./types.gen"
@@ -305,23 +304,18 @@ export class CategoriesService {
    * Delete Categories
    * Delete an Categories.
    * @param data The data for the request.
-   * @param data.id
+   * @param data.void
    * @returns Message Successful Response
    * @throws ApiError
    */
-  public static deleteCategories(
-    data: CategoriesDeleteCategoriesData,
-  ): CancelablePromise<CategoriesDeleteCategoriesResponse> {
+  public static deleteCategories(): CancelablePromise<CategoriesDeleteCategoriesResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/categories/",
-      path: {
-        id: data.id,
-      },
       errors: {
         422: "Validation Error",
       },
-    })
+    });
   }
 }
 
