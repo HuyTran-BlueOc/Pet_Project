@@ -10,12 +10,12 @@ from app.models import Categories, CategoryPublic, CategoriesPublic, CategoriesU
 router = APIRouter(prefix="/categories", tags=["categories"])
 
 @router.post("/", response_model=CategoryPublic)
-def create_categories(*, session: SessionDep, categories_in: CategoriesCreate) -> Any:
+def create_categories(*, session: SessionDep, current_user: CurrentUser, categories_in: CategoriesCreate) -> Any:
     """
     Create new category
     """
     # Tạo đối tượng Categories từ CategoriesCreate
-    category = Categories.model_validate(categories_in)
+    category = Categories.model_validate(categories_in, current_user)
 
     # Thêm category vào session và commit vào cơ sở dữ liệu
     session.add(category)
@@ -24,26 +24,39 @@ def create_categories(*, session: SessionDep, categories_in: CategoriesCreate) -
 
     return category
 
+
 @router.get('/',response_model=CategoriesPublic)
 def read_category(
-    session: SessionDep, skip: int = 0, limit: int = 100
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any: 
     """
     Retrieve Category 
     """
-  # Sum number of categories
-    cont_statement = select(func.count()).select_from(Categories)
-    count = session.exec(cont_statement).one()
-
-  # Get a paginated list of categories
-    statement = select(Categories).offset(skip).limit(limit)
-    categories = session.exec(statement).all()
+    if current_user.is_superuser:
+        count_statement = select(func.count()).select_from(Categories)
+        count = session.exec(count_statement).one()
+        statement = select(Categories).offset(skip).limit(limit)
+        categories = session.exec(statement).all()
+    else:
+        count_statement = (
+            select(func.count())
+            .select_from(Categories)
+            .where( current_user.id)
+        )
+        count = session.exec(count_statement).one()
+        statement = (
+            select(Categories)
+            .where( current_user.id)
+            .offset(skip)
+            .limit(limit)
+        )
+        Categories = session.exec(statement).all()
 
   # return about result 
     return CategoriesPublic(data=categories, count=count)
 
 @router.get('/{id}',response_model=CategoryPublic)
-def read_category(session: SessionDep, id: uuid.UUID) -> Any:
+def read_category(session: SessionDep, current_user: CurrentUser , id: uuid.UUID) -> Any:
     """
     Get category by ID 
     """
@@ -55,6 +68,7 @@ def read_category(session: SessionDep, id: uuid.UUID) -> Any:
 @router.put("/{id}", response_model=CategoryPublic)
 def update_category(
     *, session: SessionDep,
+    current_user: CurrentUser,
     id: uuid.UUID,
     category_in: CategoriesUpdate,
 ) -> Any: 
@@ -73,7 +87,7 @@ def update_category(
 
 @router.delete('/{id}')
 def delete_category( 
-    session: SessionDep, id: uuid.UUID) -> Message: 
+    session: SessionDep, current_user: CurrentUser , id: uuid.UUID) -> Message: 
     """
     Delete an Category
     """

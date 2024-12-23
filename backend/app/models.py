@@ -88,12 +88,12 @@ class CategoriesBase(SQLModel):
 
 
 # Properties to receive on item creation
-class CategoriesCreate(ItemBase):
+class CategoriesCreate(CategoriesBase):
     pass
 
 
 # Properties to receive on item update
-class CategoriesUpdate(ItemBase):
+class CategoriesUpdate(CategoriesBase):
     title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
     description: str | None = Field(default=None, max_length=255, nullable=True)  # Description is optional
 
