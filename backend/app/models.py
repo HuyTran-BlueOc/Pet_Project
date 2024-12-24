@@ -65,8 +65,8 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    categories: list["Categories"] = Relationship(back_populates="owner", cascade_delete=True)
     tasks: list["Task"] = Relationship(back_populates="owner", cascade_delete=True)
-
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
@@ -104,7 +104,8 @@ class Categories(SQLModel, table=True):
     title: str = Field(max_length=255, nullable=False)  # Title is required
     description: str | None = Field(default=None, max_length=255, nullable=True)  # Description is optional
     tasks: list["Task"] = Relationship(back_populates="category", cascade_delete=True)
-
+    owner: Optional[User] = Relationship(back_populates="categories")
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=True, ondelete="CASCADE")
 # Properties to return via API, id is always required
 class CategoryPublic(CategoriesBase):
     id: uuid.UUID
@@ -129,6 +130,7 @@ class TaskBase(SQLModel):
     due_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    categories_id: Optional[uuid.UUID] = None
 
 class TaskCreate(TaskBase):
     pass
@@ -147,6 +149,7 @@ class Task(TaskBase, table=True):
     categories_id: Optional[uuid.UUID] = Field(foreign_key="categories.id", nullable=True)
     owner: Optional[User] = Relationship(back_populates="tasks")
     category: Optional[Categories] = Relationship(back_populates="tasks")
+    
 class TaskPublic(TaskBase):
     id: uuid.UUID
     owner_id: Optional[uuid.UUID]
