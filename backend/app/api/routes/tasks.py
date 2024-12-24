@@ -102,7 +102,7 @@ def update_tasks_status(
     session: SessionDep,
     task_ids: List[uuid.UUID] = Query(...),
     status: str = Query(...),
-)-> Message:
+):
     tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
     if not tasks:
         raise HTTPException(status_code=404, detail="No tasks found")
@@ -111,15 +111,13 @@ def update_tasks_status(
         task.updated_at = datetime.utcnow()
         session.add(task)
     session.commit()
-    return Message(message = "Status of {len(tasks)} tasks updated successfully")
-
-
+    return {"detail": f"{len(tasks)} tasks updated successfully"}
 @router.delete("/tasks", response_model=dict)
-def delete_tasks(session: SessionDep, task_ids: List[uuid.UUID] = Query(...))-> Message:
+def delete_tasks(task_ids: List[uuid.UUID], session: SessionDep):
     tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
     if not tasks:
         raise HTTPException(status_code=404, detail="No tasks found")
     for task in tasks:
         session.delete(task)
-        session.commit()
-    return Message(message = "{len(tasks)} tasks deleted successfully")
+    session.commit()
+    return {"detail": f"{len(tasks)} tasks deleted successfully"}
