@@ -3,6 +3,28 @@ import uuid
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
+from enum import Enum
+from typing import Optional, List
+from datetime import datetime
+
+
+# =========================
+# ENUMS
+# =========================
+class ETaskStatus(str, Enum):
+    PENDING = "Pending"
+    IN_PROGRESS = "In Progress"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
+
+class ETaskPriority(str, Enum):
+    HIGH = "High"
+    MEDIUM = "Medium"
+    LOW = "Low"
+
+# =========================
+# USER MODELS
+# =========================
 
 # Shared properties
 class UserBase(SQLModel):
@@ -43,8 +65,8 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
-
+    categories: list["Categories"] = Relationship(back_populates="owner", cascade_delete=True)
+    tasks: list["Task"] = Relationship(back_populates="owner", cascade_delete=True)
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
@@ -55,31 +77,9 @@ class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
 
-
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
-
-
-# Properties to receive on item creation
-class ItemCreate(ItemBase):
-    pass
-
-
-# Properties to receive on item update
-class ItemUpdate(ItemBase):
-    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
-
-
-# Database model, database table inferred from class name
-class Item(ItemBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    title: str = Field(max_length=255)
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
-    )
-    owner: User | None = Relationship(back_populates="items")
+# =========================
+# CATEGORY MODELS
+# =========================
 
 # Shared properties
 class CategoriesBase(SQLModel):
@@ -88,12 +88,12 @@ class CategoriesBase(SQLModel):
 
 
 # Properties to receive on item creation
-class CategoriesCreate(ItemBase):
+class CategoriesCreate(CategoriesBase):
     pass
 
 
 # Properties to receive on item update
-class CategoriesUpdate(ItemBase):
+class CategoriesUpdate(CategoriesBase):
     title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
     description: str | None = Field(default=None, max_length=255, nullable=True)  # Description is optional
 
@@ -103,7 +103,9 @@ class Categories(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)  # UUID primary key
     title: str = Field(max_length=255, nullable=False)  # Title is required
     description: str | None = Field(default=None, max_length=255, nullable=True)  # Description is optional
-
+    tasks: list["Task"] = Relationship(back_populates="category", cascade_delete=True)
+    owner: Optional[User] = Relationship(back_populates="categories")
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=True, ondelete="CASCADE")
 # Properties to return via API, id is always required
 class CategoryPublic(CategoriesBase):
     id: uuid.UUID
@@ -116,16 +118,53 @@ class CategoriesPublic(SQLModel):
     count: int
 
 
-# Properties to return via API, id is always required
-class ItemPublic(ItemBase):
+# =========================
+# TASK MODELS
+# =========================
+
+class TaskBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: Optional[str] = None
+    status: ETaskStatus = Field(default=ETaskStatus.PENDING)
+    priority: ETaskPriority = Field(default=ETaskPriority.MEDIUM)
+    due_date: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    categories_id: Optional[uuid.UUID] = None
+
+class TaskCreate(TaskBase):
+    pass
+
+class TaskUpdate(SQLModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    status: Optional[ETaskStatus] = None
+    priority: Optional[ETaskPriority] = None
+    due_date: Optional[datetime] = None
+
+# Task database model
+class Task(TaskBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    categories_id: Optional[uuid.UUID] = Field(foreign_key="categories.id", nullable=True)
+    owner: Optional[User] = Relationship(back_populates="tasks")
+    category: Optional[Categories] = Relationship(back_populates="tasks")
+    
+class TaskPublic(TaskBase):
     id: uuid.UUID
-    owner_id: uuid.UUID
+    owner_id: Optional[uuid.UUID]
+    categories_id: Optional[uuid.UUID]
 
-
-class ItemsPublic(SQLModel):
-    data: list[ItemPublic]
+class TasksPublic(SQLModel):
+    data: list[TaskPublic]
+    count: int
+class UsersPublic(SQLModel):
+    data: list[UserPublic]
     count: int
 
+# =========================
+# AUTH AND GENERIC MODELS
+# =========================
 
 # Generic message
 class Message(SQLModel):
@@ -146,3 +185,4 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
