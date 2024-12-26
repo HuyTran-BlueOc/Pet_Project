@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from app.api.routes import tasks, login, private, users, utils, categories, notes
 from app.core.config import settings
-from app.api.routes import tasks
 
 api_router = APIRouter()
 api_router.include_router(login.router)

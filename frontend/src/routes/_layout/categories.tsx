@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from "react";
 import {
   Container,
   Heading,
@@ -11,17 +12,18 @@ import {
   TableContainer,
   useDisclosure,
 } from "@chakra-ui/react";
-import ItemModal from "../../components/Categories/TaskinCategory";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { CategoriesService } from "../../client";
 import ActionsMenu from "../../components/Common/ActionsMenu";
 import Navbar from "../../components/Common/Navbar";
 import { PaginationFooter } from "../../components/Common/PaginationFooter";
 import AddCategory from "../../components/Categories/AddCategory";
-import DeleteAllCategories from "../../components/Categories/DeleteAllCategory"
+import DeleteAllCategories from "../../components/Categories/DeleteAllCategory";
+import SearchCategory from "../../components/Categories/SearchCategory";
+// import TaskModal from "../../components/Categories/TaskinCategory";
+
 const CategoriesSearchSchema = z.object({
   page: z.number().catch(1),
 });
@@ -31,6 +33,7 @@ type Category = {
   title: string;
   description?: string | null;
 };
+
 export const Route = createFileRoute("/_layout/categories")({
   component: Categories,
   validateSearch: (search) => CategoriesSearchSchema.parse(search),
@@ -38,20 +41,29 @@ export const Route = createFileRoute("/_layout/categories")({
 
 const PER_PAGE = 5;
 
-function getCategoriesQueryOptions({ page }: { page: number }) {
+function getCategoriesQueryOptions({
+  page,
+  search,
+}: {
+  page: number;
+  search: string;
+}) {
   return {
     queryFn: () =>
       CategoriesService.readCategories({
         skip: (page - 1) * PER_PAGE,
         limit: PER_PAGE,
+        search: search || undefined,
       }),
-    queryKey: ["categories", { page }],
+    queryKey: ["categories", { page, search }],
   };
 }
 
 function CategoriesTable() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
   const { page } = Route.useSearch();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
@@ -60,15 +72,35 @@ function CategoriesTable() {
   const navigate = useNavigate({ from: Route.fullPath });
   const setPage = (page: number) =>
     navigate({
-      search: (prev: { [key: string]: string }) => ({ ...prev, page }),
+      search: (prev: { [key: string]: string }) => ({ ...prev, page, search }),
     });
+
+  // Handle debouncing with useRef
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current); // Clear the previous timeout
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search); // Set the debounced search term after delay
+    }, 500); // 500ms delay before applying the search
+
+    // Clean up on unmount
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]); // When search changes, trigger debounce effect
 
   const {
     data: categories,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getCategoriesQueryOptions({ page }),
+    ...getCategoriesQueryOptions({ page, search: debouncedSearch }),
     placeholderData: (preData) => preData,
   });
 
@@ -78,20 +110,26 @@ function CategoriesTable() {
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getCategoriesQueryOptions({ page: page + 1 }));
+      queryClient.prefetchQuery(
+        getCategoriesQueryOptions({ page: page + 1, search: debouncedSearch })
+      );
     }
-  }, [page, queryClient, hasNextPage]);
+  }, [page, queryClient, hasNextPage, debouncedSearch]);
 
   const openModalWithCategory = (category: Category) => {
     setSelectedCategory(category);
     onOpen();
   };
 
-  
   return (
     <>
+      <SearchCategory
+        search={search}
+        onSearchChange={(e) => setSearch(e.target.value)}
+        
+      />
       <TableContainer>
-        <Table size={{ base: "sm", md: "md" }}>
+        <Table size={{ base: "sm", md: "md"}}>
           <Thead>
             <Tr>
               <Th>Numerical Order</Th>
@@ -117,20 +155,32 @@ function CategoriesTable() {
                   <Td
                     onClick={() => openModalWithCategory(category)}
                     _hover={{
-                      // bg: "linear-gradient(90deg, #2b6cb0, #63b3ed)", // Màu gradient xanh
                       color: "white",
                       cursor: "pointer",
                     }}
                   >
                     {index + 1}
                   </Td>
-                  <Td isTruncated maxWidth="150px">
+                  <Td
+                    isTruncated
+                    maxWidth="150px"
+                    onClick={() => openModalWithCategory(category)}
+                    _hover={{
+                      color: "white",
+                      cursor: "pointer",
+                    }}
+                  >
                     {category.title}
                   </Td>
                   <Td
                     color={!category.description ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
+                    onClick={() => openModalWithCategory(category)}
+                    _hover={{
+                      color: "white",
+                      cursor: "pointer",
+                    }}
                   >
                     {category.description || "N/A"}
                   </Td>
@@ -150,18 +200,17 @@ function CategoriesTable() {
         hasPreviousPage={hasPreviousPage}
       />
 
-      <ItemModal
+      {/* <TaskModal
         isOpen={isOpen}
         onClose={onClose}
         categoryId={selectedCategory?.id || null}
-        categoryTitle={selectedCategory?.title || null}
-      />
+        // categoryTitle={selectedCategory?.title || null}
+      /> */}
     </>
   );
 }
 
 function Categories() {
-  
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
@@ -176,3 +225,5 @@ function Categories() {
     </Container>
   );
 }
+
+export default Categories;
