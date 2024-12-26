@@ -59,12 +59,13 @@ def create_task(
             if not current_user.is_superuser and task.owner_id != current_user.id:
                 raise HTTPException(status_code=400, detail="Not enough permissions")
         
-        task_data = task.dict(exclude={"categories_id"})
+        task_data = task.dict()
+
+        task_data["categories_id"] = categories_id if task.categories_id == "" else task.categories_id
 
         new_task = Task(
             **task_data,
             owner_id=current_user.id,
-            categories_id=categories_id  
         )
 
         session.add(new_task)
@@ -74,6 +75,7 @@ def create_task(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+
 
 @router.put('/{task_id}', response_model=TaskPublic)
 def update_task(*, session: SessionDep, current_user: CurrentUser, task_id: uuid.UUID,task_update: TaskUpdate, categories_id: Optional[uuid.UUID] = None,):

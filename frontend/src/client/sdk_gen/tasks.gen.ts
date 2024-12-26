@@ -39,6 +39,7 @@ export class TasksService {
   public static createTask(
     data: TasksCreateTaskData,
   ): CancelablePromise<TasksCreateTaskResponse> {
+    console.log("data.requestBody", data.requestBody)
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/tasks/",
