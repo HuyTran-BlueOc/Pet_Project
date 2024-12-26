@@ -176,7 +176,6 @@ export const CategoriesPublicSchema = {
   title: "CategoriesPublic",
 } as const
 
-
 export const MessageSchema = {
   properties: {
     message: {

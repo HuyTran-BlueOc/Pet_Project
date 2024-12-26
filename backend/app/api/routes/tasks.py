@@ -36,10 +36,12 @@ def get_tasks_by_owner(
 
 
 @router.get("/{task_id}", response_model=TaskPublic)
-def get_task(session: SessionDep, task_id: uuid.UUID ):
+def get_task(session: SessionDep, current_user: CurrentUser, task_id: uuid.UUID ):
     task = session.get(Task, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+    if not current_user.is_superuser and task.owner_id != current_user.id:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
     return task
 
 @router.post("/", response_model=TaskPublic)
@@ -54,7 +56,9 @@ def create_task(
             category = session.get(Categories, categories_id)
             if not category:
                 raise HTTPException(status_code=404, detail="Category not found")
-
+            if not current_user.is_superuser and task.owner_id != current_user.id:
+                raise HTTPException(status_code=400, detail="Not enough permissions")
+        
         task_data = task.dict(exclude={"categories_id"})
 
         new_task = Task(
@@ -71,36 +75,8 @@ def create_task(
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
 
-# @router.post("/", response_model=TaskPublic)
-# def create_task(
-#     session: SessionDep, 
-#     current_user: CurrentUser, 
-#     task: TaskCreate, 
-# ): 
-#     try: 
-#         if task.categories_id:
-#             category = session.get(Categories, task.categories_id)
-#             if not category:
-#                 raise HTTPException(status_code=404, detail="Category not found")
-
-#         new_task = Task(
-#             task,
-#             owner_id=current_user.id,
-#         )
-        
-#         print("NewTask", new_task)
-
-#         session.add(new_task)
-#         session.commit()
-#         session.refresh(new_task)
-#         return new_task
-#     except Exception as e:
-#         session.rollback()
-#         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
-
 @router.put('/{task_id}', response_model=TaskPublic)
-def update_task(*, session: SessionDep,task_id: uuid.UUID,task_update: TaskUpdate, categories_id: Optional[uuid.UUID] = None,):
+def update_task(*, session: SessionDep, current_user: CurrentUser, task_id: uuid.UUID,task_update: TaskUpdate, categories_id: Optional[uuid.UUID] = None,):
     task = session.get(Task, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -112,6 +88,8 @@ def update_task(*, session: SessionDep,task_id: uuid.UUID,task_update: TaskUpdat
         category = session.get(Categories, categories_id)
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
+        if not current_user.is_superuser and task.owner_id != current_user.id:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
         task.categories_id = categories_id
 
     task.updated_at = datetime.utcnow()
@@ -120,42 +98,77 @@ def update_task(*, session: SessionDep,task_id: uuid.UUID,task_update: TaskUpdat
     session.refresh(task)
     return task
 
-@router.patch("/status", response_model=dict)
-def update_tasks_status(
-    session: SessionDep,
-    task_ids: List[uuid.UUID] = Query(...),
-    status: str = Query(...),
-):
-    tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
-    if not tasks:
-        raise HTTPException(status_code=404, detail="No tasks found")
-    for task in tasks:
-        task.status = status
-        task.updated_at = datetime.utcnow()
-        session.add(task)
-    session.commit()
-    return {"detail": f"{len(tasks)} tasks updated successfully"}
-@router.delete("/", response_model=dict)
-def delete_tasks(task_ids: List[uuid.UUID], session: SessionDep):
-    tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
-    if not tasks:
-        raise HTTPException(status_code=404, detail="No tasks found")
-    for task in tasks:
-        session.delete(task)
-    session.commit()
-    return {"detail": f"{len(tasks)} tasks deleted successfully"}
-
-@router.delete("/{task_id}", response_model=dict)
-def delete_task(task_id: uuid.UUID, session: SessionDep):
+@router.delete("/tasks/{task_id}", response_model=dict)
+def delete_task(task_id: uuid.UUID, current_user: CurrentUser, session: SessionDep):
     task = session.get(Task, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+    if not current_user.is_superuser and task.owner_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
     session.delete(task)
     session.commit()
     return {"detail": "Task deleted successfully"}
 
+@router.patch("/status", response_model=dict)
+def update_tasks_status(
+    session: SessionDep,
+    current_user: CurrentUser,
+    task_ids: List[uuid.UUID] = Query(...),
+    status: str = Query(...),
+):
+    """
+    Update the status of multiple tasks
+    """
+    # Fetch tasks matching the provided IDs
+    tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
+
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found")
+
+    # Check permissions for each task
+    for task in tasks:
+        if not current_user.is_superuser and task.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Not enough permissions to update task {task.id}",
+            )
+
+    # Update the status of tasks
+    for task in tasks:
+        task.status = status
+        task.updated_at = datetime.utcnow()
+        session.add(task)
+
+    session.commit()
+    return {"detail": f"{len(tasks)} tasks updated successfully"}
+
+
+@router.delete("/tasks", response_model=dict)
+def delete_tasks(task_ids: List[uuid.UUID], session: SessionDep, current_user: CurrentUser):
+    # Fetch tasks using the task_ids
+    tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
+
+    # If no tasks are found, raise a 404 error
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found")
+
+    # Check permissions: if user is not superuser and not the owner of the task, raise error
+    for task in tasks:
+        if not current_user.is_superuser and task.owner_id != current_user.id:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    # If permission is valid, delete each task
+    for task in tasks:
+        session.delete(task)
+
+    # Commit the changes to the database
+    session.commit()
+
+    return {"detail": f"{len(tasks)} tasks deleted successfully"}
+
+
 @router.delete("/{task_id}/categories", response_model=dict)
-def remove_category_from_task(task_id: uuid.UUID, session: SessionDep):
+def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_user: CurrentUser,):
     """
     Xóa liên kết giữa một task và category của nó
     """
@@ -168,7 +181,8 @@ def remove_category_from_task(task_id: uuid.UUID, session: SessionDep):
             status_code=400,
             detail="Task does not have an associated category",
         )
-
+    if not current_user.is_superuser and task.owner_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
     task.categories_id = None
     task.updated_at = datetime.utcnow()
 
