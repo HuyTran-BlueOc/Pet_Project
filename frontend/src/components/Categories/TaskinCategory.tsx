@@ -1,91 +1,79 @@
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Table,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
-  Spinner,
-} from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
-import { ItemsService } from "../../client";
-import React from "react";
+// import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, Table, Tbody, Td, Th, Thead, Tr, Box } from "@chakra-ui/react";
+// import { useEffect, useState } from "react";
+// import { CategoryReadTaskData } from "../../client";  // Import the correct function
+// import { Item } from "../../client/types"; // Assuming `Task` type is defined in your client
 
-interface ItemModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  categoryId: string | null;
-  categoryTitle: string | null;
-}
+// type CategoryTasksModalProps = {
+//   categoryId: string | null;
+//   isOpen: boolean;
+//   onClose: () => void;
+// };
 
-const ItemModal = ({
-  isOpen,
-  onClose,
-  categoryId,
-  categoryTitle,
-}: ItemModalProps) => {
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ["tasks", { categoryId }],
-    // queryFn: () => (categoryId ? ItemsService.getTasksByCategoryId(categoryId) : []),
-    enabled: !!categoryId, // Only fetch if categoryId exists
-  });
+// const CategoryTasksModal = ({ categoryId, isOpen, onClose }: CategoryTasksModalProps) => {
+//   const [tasks, setTasks] = useState<Task[]>([]);
+//   const [loading, setLoading] = useState<boolean>(false);
+//   const [error, setError] = useState<string | null>(null);
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Tasks for {categoryTitle}</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          >
-          {isLoading ? (
-            <>
-              <Spinner size="lg" mb={2} />
-              <p>No Task</p>
-            </>
-          ) : (
-            <Table size="sm">
-              <Thead>
-                <Tr>
-                  <Th>Task Name</Th>
-                  <Th>Description</Th>
-                  <Th>Status</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {/* {tasks?.map((task) => (
-                  <Tr key={task.id}>
-                    <Td>{task.name}</Td>
-                    <Td>{task.status}</Td>
-                  </Tr>
-                ))} */}
-                <Tr>
-                  <Td>Name</Td>
-                  <Td>Description 1</Td>
-                  <Td>Status</Td>
-                </Tr>
-              </Tbody>
-            </Table>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Button onClick={onClose}>Close</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
-};
+//   useEffect(() => {
+//     if (categoryId && isOpen) {
+//       setLoading(true);
+//       setError(null);
 
-export default ItemModal;
+//       // Call the API function - assuming it takes an object with an `id` field
+//       CategoryReadTaskData({ id: categoryId })
+//         .then((response) => {
+//           setTasks(response.data); // Ensure `response.data` is the tasks
+//         })
+//         .catch((err) => {
+//           setError("Failed to fetch tasks. Please try again later.");
+//         })
+//         .finally(() => {
+//           setLoading(false);
+//         });
+//     }
+//   }, [categoryId, isOpen]);
+
+//   return (
+//     <Modal isOpen={isOpen} onClose={onClose}>
+//       <ModalOverlay />
+//       <ModalContent>
+//         <ModalHeader>Tasks for Category: {categoryId}</ModalHeader>
+//         <ModalCloseButton />
+//         <ModalBody>
+//           {loading ? (
+//             <Box>Loading...</Box>
+//           ) : error ? (
+//             <Box color="red">{error}</Box>
+//           ) : tasks.length === 0 ? (
+//             <Box>No tasks found for this category.</Box>
+//           ) : (
+//             <Table size="sm">
+//               <Thead>
+//                 <Tr>
+//                   <Th>Title</Th>
+//                   <Th>Description</Th>
+//                 </Tr>
+//               </Thead>
+//               <Tbody>
+//                 {tasks.map((task) => (
+//                   <Tr key={task.id}>
+//                     <Td>{task.title}</Td>
+//                     <Td>{task.description}</Td>
+//                   </Tr>
+//                 ))}
+//               </Tbody>
+//             </Table>
+//           )}
+//         </ModalBody>
+
+//         <ModalFooter>
+//           <Button colorScheme="blue" onClick={onClose}>
+//             Close
+//           </Button>
+//         </ModalFooter>
+//       </ModalContent>
+//     </Modal>
+//   );
+// };
+
+// export default CategoryTasksModal;
