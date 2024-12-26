@@ -123,8 +123,8 @@ def read_category(session: SessionDep, current_user: CurrentUser, id: uuid.UUID)
 @router.put("/{id}", response_model=CategoryPublic)
 def update_category(
     *, session: SessionDep,
-    id: uuid.UUID,
     current_user: CurrentUser,
+    id: uuid.UUID,
     category_in: CategoriesUpdate,
 ) -> Any: 
     """
@@ -144,7 +144,7 @@ def update_category(
 
 @router.delete('/{id}')
 def delete_category( 
-    session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Message: 
+    session: SessionDep, current_user: CurrentUser , id: uuid.UUID) -> Message: 
     """
     Delete a category
     """
