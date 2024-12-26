@@ -7,22 +7,24 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { FiEdit, FiTrash } from "react-icons/fi";
+import { FiEdit, FiEye, FiTrash } from "react-icons/fi";
 
-import type { CategoryPublic, ItemPublic, UserPublic } from "../../client";
+import type { CategoryPublic, TaskPublic, UserPublic } from "../../client";
 import EditUser from "../Admin/EditUser";
-import EditItem from "../Items/EditItem";
 import EditCategory from "../Categories/EditCategory";
 import Delete from "./DeleteAlert";
+import AddEditTask from "../Tasks/AddEditTask";
+import ViewDetail from "../Tasks/ViewDetail";
 
 interface ActionsMenuProps {
   type: string;
-  value: ItemPublic | UserPublic | CategoryPublic;
+  value: TaskPublic | UserPublic | CategoryPublic;
   disabled?: boolean;
 }
 
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
-  const editUserModal = useDisclosure();
+  const editModal = useDisclosure();
+  const viewDetailModal = useDisclosure();
   const deleteModal = useDisclosure();
 
   return (
@@ -35,8 +37,16 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           variant="unstyled"
         />
         <MenuList>
+          {type == "Task" && (
+            <MenuItem
+              onClick={viewDetailModal.onOpen}
+              icon={<FiEye  fontSize="16px" />}
+            >
+              View detail task
+            </MenuItem>
+          )}
           <MenuItem
-            onClick={editUserModal.onOpen}
+            onClick={editModal.onOpen}
             icon={<FiEdit fontSize="16px" />}
           >
             Edit {type}
@@ -52,20 +62,20 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         {type === "User" ? (
           <EditUser
             user={value as UserPublic}
-            isOpen={editUserModal.isOpen}
-            onClose={editUserModal.onClose}
+            isOpen={editModal.isOpen}
+            onClose={editModal.onClose}
           />
-        ) : type === "Item" ? (
-          <EditItem
-            item={value as ItemPublic}
-            isOpen={editUserModal.isOpen} // Open the same modal for Item
-            onClose={editUserModal.onClose}
+        ) : type === "Task" ? (
+          <AddEditTask
+            task={value as TaskPublic}
+            isOpen={editModal.isOpen}
+            onClose={editModal.onClose}
           />
         ) : type === "Category" ? (
           <EditCategory
             category={value as CategoryPublic}
-            isOpen={editUserModal.isOpen} // Open the same modal for Category
-            onClose={editUserModal.onClose}
+            isOpen={editModal.isOpen}
+            onClose={editModal.onClose}
           />
         ) : null}
         <Delete
@@ -73,6 +83,12 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           id={value.id}
           isOpen={deleteModal.isOpen}
           onClose={deleteModal.onClose}
+          data={value}
+        />
+        <ViewDetail
+          id={value.id}
+          isOpen={viewDetailModal.isOpen}
+          onClose={viewDetailModal.onClose}
         />
       </Menu>
     </>

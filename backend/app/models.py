@@ -129,6 +129,7 @@ class TaskBase(SQLModel):
     due_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    categories_id: Optional[uuid.UUID] = None
 
 class TaskCreate(TaskBase):
     pass
@@ -139,6 +140,7 @@ class TaskUpdate(SQLModel):
     status: Optional[ETaskStatus] = None
     priority: Optional[ETaskPriority] = None
     due_date: Optional[datetime] = None
+    categories_id: Optional[uuid.UUID] = None
 
 # Task database model
 class Task(TaskBase, table=True):

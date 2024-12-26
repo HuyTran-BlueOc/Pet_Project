@@ -16,7 +16,6 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { ItemsService } from "../../client";
 import React from "react";
 
 interface ItemModalProps {
