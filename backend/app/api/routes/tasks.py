@@ -56,7 +56,9 @@ def create_task(
             category = session.get(Categories, categories_id)
             if not category:
                 raise HTTPException(status_code=404, detail="Category not found")
-
+            if not current_user.is_superuser and task.owner_id != current_user.id:
+                raise HTTPException(status_code=400, detail="Not enough permissions")
+        
         task_data = task.dict(exclude={"categories_id"})
 
         new_task = Task(
@@ -165,7 +167,7 @@ def delete_tasks(task_ids: List[uuid.UUID], session: SessionDep, current_user: C
     return {"detail": f"{len(tasks)} tasks deleted successfully"}
 
 
-@router.delete("/tasks/{task_id}/categories", response_model=dict)
+@router.delete("/{task_id}/categories", response_model=dict)
 def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_user: CurrentUser,):
     """
     Xóa liên kết giữa một task và category của nó
@@ -189,3 +191,137 @@ def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_u
     session.refresh(task)
 
     return {"detail": "Category removed from task successfully"}
+
+
+# ===================
+# fix search
+# ===================
+
+@router.get("/search", response_model=List[TasksPublic])
+def search_tasks(
+    session: SessionDep, 
+    title: Optional[str] = Query(None),
+    category_title: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    priority: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    categories_id: Optional[uuid.UUID] = None
+):
+    try :
+        """
+        Tìm kiếm và lọc tasks theo tiêu đề, trạng thái, độ ưu tiên, ngày hạn chót.
+        """
+        query = session.query(Task).join(Categories, Task.categories_id == categories_id)
+
+        # Tìm kiếm theo tiêu đề task hoặc category
+        if title:
+            query = query.filter(func.lower(Task.title).contains(title.lower()))
+        if category_title:
+            query = query.filter(func.lower(Categories.title).contains(category_title.lower()))
+
+        # Lọc theo trạng thái
+        if status:
+            query = query.filter(Task.status == status)
+
+        # Lọc theo độ ưu tiên
+        if priority:
+            query = query.filter(Task.priority == priority)
+
+        # Lọc theo ngày hạn chót
+        if start_date and end_date:
+            query = query.filter(Task.due_date.between(start_date, end_date))
+        elif start_date:
+            query = query.filter(Task.due_date >= start_date)
+        elif end_date:
+            query = query.filter(Task.due_date <= end_date)
+
+        # Thực thi truy vấn
+        tasks = query.all()
+        if not tasks:
+            raise HTTPException(status_code=404, detail="No tasks found matching the criteria")
+
+        return tasks
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+
+
+@router.delete("/{task_id}/categories", response_model=dict)
+def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_user: CurrentUser,):
+    """
+    Xóa liên kết giữa một task và category của nó
+    """
+    task = session.get(Task, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if not task.categories_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Task does not have an associated category",
+        )
+    if not current_user.is_superuser and task.owner_id != current_user.id:
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    task.categories_id = None
+    task.updated_at = datetime.utcnow()
+
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+
+    return {"detail": "Category removed from task successfully"}
+
+
+# ===================
+# fix search
+# ===================
+
+@router.get("/search", response_model=List[TasksPublic])
+def search_tasks(
+    session: SessionDep, 
+    title: Optional[str] = Query(None),
+    category_title: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    priority: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    categories_id: Optional[uuid.UUID] = None
+):
+    try :
+        """
+        Tìm kiếm và lọc tasks theo tiêu đề, trạng thái, độ ưu tiên, ngày hạn chót.
+        """
+        query = session.query(Task).join(Categories, Task.categories_id == categories_id)
+
+        # Tìm kiếm theo tiêu đề task hoặc category
+        if title:
+            query = query.filter(func.lower(Task.title).contains(title.lower()))
+        if category_title:
+            query = query.filter(func.lower(Categories.title).contains(category_title.lower()))
+
+        # Lọc theo trạng thái
+        if status:
+            query = query.filter(Task.status == status)
+
+        # Lọc theo độ ưu tiên
+        if priority:
+            query = query.filter(Task.priority == priority)
+
+        # Lọc theo ngày hạn chót
+        if start_date and end_date:
+            query = query.filter(Task.due_date.between(start_date, end_date))
+        elif start_date:
+            query = query.filter(Task.due_date >= start_date)
+        elif end_date:
+            query = query.filter(Task.due_date <= end_date)
+
+        # Thực thi truy vấn
+        tasks = query.all()
+        if not tasks:
+            raise HTTPException(status_code=404, detail="No tasks found matching the criteria")
+
+        return tasks
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")

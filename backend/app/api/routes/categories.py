@@ -1,7 +1,7 @@
 import uuid
-from typing import Any, List
-
-from fastapi import APIRouter, HTTPException, Path
+from typing import Any, List, Optional
+from uuid import UUID  
+from fastapi import APIRouter, HTTPException, Query
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
@@ -29,7 +29,7 @@ def create_categories(
 
     if existing_category:
         raise HTTPException(
-            status_code=400,
+            status_code=404,
             detail="A category with this title already exists."
         )
 
@@ -43,27 +43,73 @@ def create_categories(
 
     return category
 
-
-@router.get('/',response_model=CategoriesPublic)
-def read_category(
-    session: SessionDep, skip: int = 0, limit: int = 100
+@router.get("/category/{id}/task", response_model=List[Task])
+def get_tasks_by_category(*,
+    id: uuid.UUID,
+    session: SessionDep,
+    current_user: CurrentUser
 ) -> Any: 
     """
-    Retrieve Category 
+    Read Category Task
     """
-  # Sum number of categories
-    cont_statement = select(func.count()).select_from(Categories)
-    count = session.exec(cont_statement).one()
+    # Query tasks with categories_id = id
+    tasks = session.query(Task).filter(Task.categories_id == id).all()
 
-  # Get a paginated list of categories
-    statement = select(Categories).offset(skip).limit(limit)
-    categories = session.exec(statement).all()
+    # If no tasks found, return a 404 error
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found for the given category ID")
+    
+    # Check permissions: if user is not a superuser and not the owner of any task
+    for task in tasks:
+        if not current_user.is_superuser and task.owner_id != current_user.id:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+    
+    return tasks
 
-  # return about result 
-    return CategoriesPublic(data=categories, count=count)
+@router.get('', response_model=CategoriesPublic)
+def read_category(
+    session: SessionDep, 
+    current_user: CurrentUser,
+    skip: int = 0, 
+    limit: int = 100,
+    search: Optional[str] = None
+) -> Any: 
+    """
+    Retrieve Categories 
+    """
+    # Initialize base statement and count statement
+    statement = select(Categories)
+    count_statement = select(func.count()).select_from(Categories)
+    
+    # Check for search and apply filter for both statement and count_statement
+    if search:
+        filter_condition = (
+            (Categories.title.ilike(f"%{search}%")) | 
+            (Categories.description.ilike(f"%{search}%"))
+        )
+        statement = statement.filter(filter_condition)
+        count_statement = count_statement.filter(filter_condition)
+    
+    # If the user is a superuser, fetch all categories
+    if current_user.is_superuser:
+        categories_count = session.execute(count_statement).scalar_one()
+        statement = statement.offset(skip).limit(limit)
+        categories = session.execute(statement).scalars().all()
+    else:
+        # If the user is not a superuser, fetch categories specific to the user
+        count_statement = count_statement.filter(Categories.owner_id == current_user.id)
+        statement = statement.filter(Categories.owner_id == current_user.id)
+        
+        categories_count = session.execute(count_statement).scalar_one()
+        statement = statement.offset(skip).limit(limit)
+        categories = session.execute(statement).scalars().all()
 
-@router.get('/{id}',response_model=CategoryPublic)
-def read_one_category(session: SessionDep,current_user: CurrentUser, id: uuid.UUID) -> Any:
+    # Return the result: categories and their count
+    return CategoriesPublic(data=categories, count=categories_count)
+
+
+@router.get('/{id}', response_model=CategoryPublic)
+def read_category(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
     """
     Get category by ID 
     """
@@ -97,11 +143,8 @@ def update_category(
     return category
 
 @router.delete('/{id}')
-def delete_one_category(
-    *, session: SessionDep,
-    current_user: CurrentUser,
-    id: uuid.UUID,
-) -> Message: 
+def delete_category( 
+    session: SessionDep, current_user: CurrentUser , id: uuid.UUID) -> Message: 
     """
     Delete a category
     """
@@ -114,7 +157,7 @@ def delete_one_category(
     session.commit()
     return Message(message="Category deleted successfully")
 
-@router.delete("/")
+@router.delete("")
 def delete_categories(session: SessionDep, current_user: CurrentUser) -> Message:
     """
     Delete all categories
@@ -138,3 +181,4 @@ def delete_categories(session: SessionDep, current_user: CurrentUser) -> Message
 
     session.commit()
     return Message(message="All categories deleted successfully")
+

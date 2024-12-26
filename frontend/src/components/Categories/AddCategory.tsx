@@ -12,7 +12,8 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react"
-import { type ApiError, CategoriesService, CategoryCreate, type ItemCreate, ItemsService } from "../../client"
+// import { type ApiError, CategoriesService, CategoryCreate, type ItemCreate, ItemsService } from "../../client"
+import { type ApiError, CategoriesService, CategoryCreate } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
 import React from "react"
