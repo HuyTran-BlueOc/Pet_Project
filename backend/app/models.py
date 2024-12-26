@@ -141,6 +141,7 @@ class TaskUpdate(SQLModel):
     status: Optional[ETaskStatus] = None
     priority: Optional[ETaskPriority] = None
     due_date: Optional[datetime] = None
+    categories_id: Optional[uuid.UUID] = None
 
 # Task database model
 class Task(TaskBase, table=True):

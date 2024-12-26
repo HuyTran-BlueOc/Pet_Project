@@ -1,7 +1,29 @@
-// import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, Table, Tbody, Td, Th, Thead, Tr, Box } from "@chakra-ui/react";
-// import { useEffect, useState } from "react";
-// import { CategoryReadTaskData } from "../../client";  // Import the correct function
-// import { Item } from "../../client/types"; // Assuming `Task` type is defined in your client
+// import {
+//   Modal,
+//   ModalOverlay,
+//   ModalContent,
+//   ModalHeader,
+//   ModalCloseButton,
+//   ModalBody,
+//   ModalFooter,
+//   Button,
+//   Table,
+//   Tbody,
+//   Td,
+//   Th,
+//   Thead,
+//   Tr,
+//   Box,
+// } from "@chakra-ui/react";
+// import {  useState } from "react";
+// // Define the Task type (adjust based on your actual API response structure)
+// type Task = {
+//   id: string;
+//   title: string;
+//   description: string;
+//   status: string; // Add fields that exist in your task model
+//   due_date?: string; // Example optional field
+// };
 
 // type CategoryTasksModalProps = {
 //   categoryId: string | null;
@@ -13,25 +35,17 @@
 //   const [tasks, setTasks] = useState<Task[]>([]);
 //   const [loading, setLoading] = useState<boolean>(false);
 //   const [error, setError] = useState<string | null>(null);
+//   const {
+//     register,
+//     handleSubmit,
+//     reset,
+//     formState: { isSubmitting, errors, isDirty },
+//   } = useForm<CategoryUpdate>({
+//     mode: "onBlur",
+//     criteriaMode: "all",
+//     defaultValues: category,
+//   });
 
-//   useEffect(() => {
-//     if (categoryId && isOpen) {
-//       setLoading(true);
-//       setError(null);
-
-//       // Call the API function - assuming it takes an object with an `id` field
-//       CategoryReadTaskData({ id: categoryId })
-//         .then((response) => {
-//           setTasks(response.data); // Ensure `response.data` is the tasks
-//         })
-//         .catch((err) => {
-//           setError("Failed to fetch tasks. Please try again later.");
-//         })
-//         .finally(() => {
-//           setLoading(false);
-//         });
-//     }
-//   }, [categoryId, isOpen]);
 
 //   return (
 //     <Modal isOpen={isOpen} onClose={onClose}>
@@ -52,6 +66,8 @@
 //                 <Tr>
 //                   <Th>Title</Th>
 //                   <Th>Description</Th>
+//                   <Th>Status</Th>
+//                   <Th>Due Date</Th>
 //                 </Tr>
 //               </Thead>
 //               <Tbody>
@@ -59,6 +75,8 @@
 //                   <Tr key={task.id}>
 //                     <Td>{task.title}</Td>
 //                     <Td>{task.description}</Td>
+//                     <Td>{task.status}</Td>
+//                     <Td>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "N/A"}</Td>
 //                   </Tr>
 //                 ))}
 //               </Tbody>
