@@ -47,20 +47,24 @@ def create_task(
     session: SessionDep, 
     current_user: CurrentUser, 
     task: TaskCreate, 
-    categories_id: Optional[uuid.UUID] = None
+    # categories_id: Optional[uuid.UUID] = None
 ): 
     try: 
-        if categories_id:
-            category = session.get(Categories, categories_id)
+        if task.categories_id:
+            category = session.get(Categories, task.categories_id)
             if not category:
                 raise HTTPException(status_code=404, detail="Category not found")
+            if not current_user.is_superuser and task.owner_id != current_user.id:
+                raise HTTPException(status_code=400, detail="Not enough permissions")
+        
+        task_data = task.dict()
 
-        task_data = task.dict(exclude={"categories_id"})
+        task_data["categories_id"] = task.categories_id
+        # task_data["categories_id"] = categories_id if task.categories_id == "" else task.categories_id
 
         new_task = Task(
             **task_data,
             owner_id=current_user.id,
-            categories_id=categories_id  
         )
 
         session.add(new_task)
@@ -70,34 +74,6 @@ def create_task(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
-# @router.post("/", response_model=TaskPublic)
-# def create_task(
-#     session: SessionDep, 
-#     current_user: CurrentUser, 
-#     task: TaskCreate, 
-# ): 
-#     try: 
-#         if task.categories_id:
-#             category = session.get(Categories, task.categories_id)
-#             if not category:
-#                 raise HTTPException(status_code=404, detail="Category not found")
-
-#         new_task = Task(
-#             task,
-#             owner_id=current_user.id,
-#         )
-        
-#         print("NewTask", new_task)
-
-#         session.add(new_task)
-#         session.commit()
-#         session.refresh(new_task)
-#         return new_task
-#     except Exception as e:
-#         session.rollback()
-#         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
 
 @router.put('/{task_id}', response_model=TaskPublic)
 def update_task(*, session: SessionDep,task_id: uuid.UUID,task_update: TaskUpdate, categories_id: Optional[uuid.UUID] = None,):

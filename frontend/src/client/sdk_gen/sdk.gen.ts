@@ -189,6 +189,139 @@ export class CategoriesService {
 }
 
 
+// fix Note
+export class NotesService {
+  
+  public static readNote(
+    data: CategoriesReadCategoriesData = {},
+  ): CancelablePromise<CategoriesReadCategoriesResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/categories/",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create Category
+   * Create new Category.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static createNote(
+    data: CategoriesCreateCategoriesData,
+  ): CancelablePromise<CategoriesCreateCategoriesResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/categories/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Category
+   * Get Category by ID.
+   * @param data The data for the request.
+   * @param data.id
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static readCategory(
+    data: CategoriesReadCategoryData,
+  ): CancelablePromise<CategoriesReadCategoryResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/categories/{id}",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Category
+   * Update an Category.
+   * @param data The data for the request.
+   * @param data.id
+   * @param data.requestBody
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateCategory(
+    data: CategoriesUpdateCategoryData,
+  ): CancelablePromise<CategoriesUpdateCategoryResponse> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/categories/{id}",
+      path: {
+        id: data?.id,
+      },
+      body: data?.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Category
+   * Delete an Category.
+   * @param data The data for the request.
+   * @param data.id
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteCategory(
+    data: CategoriesDeleteCategoryData,
+  ): CancelablePromise<CategoriesDeleteCategoryResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/categories/{id}",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Categories
+   * Delete an Categories.
+   * @param data The data for the request.
+   * @param data.void
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteCategories(): CancelablePromise<CategoriesDeleteCategoriesResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/categories/",
+      errors: {
+        422: "Validation Error",
+      },
+    });
+  }
+}
+
+
 export class LoginService {
   /**
    * Login Access Token

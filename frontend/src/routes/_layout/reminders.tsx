@@ -24,7 +24,7 @@ const tasksSearchSchema = z.object({
   page: z.number().catch(1),
 });
 
-export const Route = createFileRoute("/_layout/tasks")({
+export const Route = createFileRoute("/_layout/reminders")({
   component: Tasks,
   validateSearch: (search) => tasksSearchSchema.parse(search),
 });
@@ -71,14 +71,8 @@ function TasksTable() {
         <Table size={{ base: "sm", md: "md" }}>
           <Thead>
             <Tr>
-              <Th>Numerical Order</Th>
               <Th>Title</Th>
               <Th>Description</Th>
-              <Th>Status</Th>
-              <Th>Priority</Th>
-              <Th>due_date</Th>
-              <Th>Category Title</Th>
-              <Th>Actions</Th>
             </Tr>
           </Thead>
           {isPending ? (
@@ -95,9 +89,7 @@ function TasksTable() {
             <Tbody>
               {Tasks?.data.map((task: TaskPublic, index: any) => (
                 <Tr key={task.id} opacity={isPlaceholderData ? 0.5 : 1}>
-                  <Td isTruncated maxWidth="50px">
-                    {index + 1}
-                  </Td>
+                  
                   <Td isTruncated maxWidth="150px">
                     {task.title}
                   </Td>
@@ -108,29 +100,8 @@ function TasksTable() {
                   >
                     {task.description || "N/A"}
                   </Td>
-                  <Td isTruncated maxWidth="150px">
-                    {task.status}
-                  </Td>
-                  <Td isTruncated maxWidth="150px">
-                    {task.priority}
-                  </Td>
-                  <Td
-                    color={!task.due_date ? "ui.dim" : "inherit"}
-                    isTruncated
-                    maxWidth="150px"
-                  >
-                    {task.due_date || "N/A"}
-                  </Td>
-                  <Td
-                    color={!task.due_date ? "ui.dim" : "inherit"}
-                    isTruncated
-                    maxWidth="150px"
-                  >
-                    {task.categories_id || "N/A"}
-                  </Td>
-                  <Td>
-                    <ActionsMenu type={"Task"} value={task} />
-                  </Td>
+                  
+                  
                 </Tr>
               ))}
             </Tbody>
