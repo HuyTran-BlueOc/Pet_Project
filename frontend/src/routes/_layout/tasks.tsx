@@ -16,9 +16,10 @@ import { z } from "zod";
 import { TaskPublic, TasksService } from "../../client";
 import ActionsMenu from "../../components/Common/ActionsMenu";
 import AddEditTask from "../../components/Tasks/AddEditTask";
+import DeleteTasksById from "../../components/Tasks/DeleteTasks";
 import { PaginationFooter } from "../../components/Common/PaginationFooter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const tasksSearchSchema = z.object({
   page: z.number().catch(1),
@@ -48,6 +49,27 @@ function TasksTable() {
       search: (prev: { [key: string]: string }) => ({ ...prev, page }),
     });
 
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+
+  
+  
+  const handleDeleteSelectedTasks = async () => {
+    if (selectedTasks.length === 0) {  
+      alert("No tasks selected!");
+      return;
+    }
+    
+    try {
+      await TasksService.deleteTasks({ ids: selectedTasks });
+      setSelectedTasks([]); 
+      queryClient.invalidateQueries({queryKey: ["tasks"]}); 
+      // alert("Deleted selected tasks successfully!");
+    } catch (error) {
+      console.error("Error deleting tasks:", error);
+      // alert("Failed to delete tasks!");
+    }
+  };
+
   const {
     data: Tasks,
     isPending,
@@ -65,12 +87,41 @@ function TasksTable() {
     }
   }, [page, queryClient, hasNextPage]);
 
+  const toggleTaskSelection = (taskId: string) => {
+        setSelectedTasks((prev) =>
+          prev.includes(taskId)
+            ? prev.filter((id) => id !== taskId)
+            : [...prev, taskId]
+        );
+      };
+
+// console.log("Tasks",)
+
   return (
     <>
+     <button onClick={handleDeleteSelectedTasks} style={{backgroundColor: "red", padding:"8px", borderRadius:"8px"}}>Delete Selected</button>
       <TableContainer>
         <Table size={{ base: "sm", md: "md" }}>
           <Thead>
             <Tr>
+              <Th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedTasks(
+                        Tasks?.data.map((task) => task.id) || []
+                      );
+                    } else {
+                      setSelectedTasks([]);
+                    }
+                  }}
+                  checked={
+                    (Tasks?.data || []).length > 0 &&
+                    selectedTasks.length === Tasks?.data.length
+                  }
+                />
+              </Th>
               <Th>Numerical Order</Th>
               <Th>Title</Th>
               <Th>Description</Th>
@@ -95,6 +146,13 @@ function TasksTable() {
             <Tbody>
               {Tasks?.data.map((task: TaskPublic, index: any) => (
                 <Tr key={task.id} opacity={isPlaceholderData ? 0.5 : 1}>
+                  <Td>
+                    <input
+                      type="checkbox"
+                      checked={selectedTasks.includes(task.id)}
+                      onChange={() => toggleTaskSelection(task.id)}
+                    />
+                  </Td>
                   <Td isTruncated maxWidth="50px">
                     {index + 1}
                   </Td>
@@ -126,7 +184,7 @@ function TasksTable() {
                     isTruncated
                     maxWidth="150px"
                   >
-                    {task.categories_id || "N/A"}
+                    {task.category_title || "N/A"}
                   </Td>
                   <Td>
                     <ActionsMenu type={"Task"} value={task} />
@@ -161,6 +219,7 @@ function Tasks() {
         addModalAs={AddEditTask}
         // update_tasks_status: List[id]          --    --            --navbarPage
         // delete_tasks: List[id]                 --    --            --navbarPage
+        deleteTasks = {DeleteTasksById}
       />
       <TasksTable />
     </Container>

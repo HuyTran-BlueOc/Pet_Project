@@ -26,7 +26,6 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
-import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";
 
 interface AddEditTaskProps {
@@ -48,7 +47,6 @@ function AddEditTask(props: AddEditTaskProps) {
   const queryClient = useQueryClient();
   const { data: categories, isLoading, error } = useAllCategories();
 
-  console.log("categoriesall", categories);
   const handleRemind = () => {
     console.log("remind");
   };
@@ -196,32 +194,10 @@ function AddEditTask(props: AddEditTaskProps) {
             </Select>
           </FormControl>
         </ModalBody>
-
-        {/* <ModalFooter gap={3}>
-        <Button
-            variant="primary"
-            // type="submit"
-            isLoading={isSubmitting}
-            isDisabled={!isDirty}
-            onClick={handleRemind}
-          >
-            Reamind
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            isLoading={isSubmitting}
-            isDisabled={!isDirty}
-          >
-            Save
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
-        </ModalFooter> */}
         <ModalFooter gap={3} style={{ justifyContent: "space-between" }}>
           <div>
             <Button
               variant="primary"
-              // type="submit"
               isLoading={isSubmitting}
               isDisabled={!isDirty}
               onClick={handleRemind}

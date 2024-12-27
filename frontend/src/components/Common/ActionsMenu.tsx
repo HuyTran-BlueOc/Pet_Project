@@ -15,8 +15,6 @@ import EditCategory from "../Categories/EditCategory";
 import Delete from "./DeleteAlert";
 import AddEditTask from "../Tasks/AddEditTask";
 import ViewDetail from "../Tasks/ViewDetail";
-import AddNote from "../Notes/AddNote";
-import ViewAllNote from "../Notes/ViewAllNote";
 import { FaPlus } from "react-icons/fa";
 
 interface ActionsMenuProps {
@@ -28,9 +26,7 @@ interface ActionsMenuProps {
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
   const editModal = useDisclosure();
   const viewDetailModal = useDisclosure();
-  const addNoteModal = useDisclosure();
   const deleteModal = useDisclosure();
-  const ViewAllNoteModal = useDisclosure();
 
   return (
     <>
@@ -50,22 +46,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
               View detail task
             </MenuItem>
           )}
-          {type == "Task" && (
-            <MenuItem
-              onClick={ViewAllNoteModal.onOpen}
-              icon={<FiEye  fontSize="16px" />}
-            >
-              View All Note
-            </MenuItem>
-          )}
-          {type == "Task" && (
-            <MenuItem
-              onClick={addNoteModal.onOpen}
-              icon={<FaPlus  fontSize="16px" />}
-            >
-              Add Note
-            </MenuItem>
-          )}
+          
+          
           <MenuItem
             onClick={editModal.onOpen}
             icon={<FiEdit fontSize="16px" />}
@@ -111,16 +93,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           isOpen={viewDetailModal.isOpen}
           onClose={viewDetailModal.onClose}
         />
-        <AddNote
-          id={value.id}
-          isOpen={addNoteModal.isOpen}
-          onClose={addNoteModal.onClose}
-        />
-        <ViewAllNote
-          id={value.id}
-          isOpen={addNoteModal.isOpen}
-          onClose={addNoteModal.onClose}
-        />
+        
+        
       </Menu>
     </>
   );

@@ -73,6 +73,7 @@ function TasksTable() {
             <Tr>
               <Th>Title</Th>
               <Th>Description</Th>
+              <Th>Due_date</Th>
             </Tr>
           </Thead>
           {isPending ? (
@@ -100,8 +101,13 @@ function TasksTable() {
                   >
                     {task.description || "N/A"}
                   </Td>
-                  
-                  
+                  <Td
+                    color={!task.description ? "ui.dim" : "inherit"}
+                    isTruncated
+                    maxWidth="150px"
+                  >
+                    {task.due_date || "N/A"}
+                  </Td>
                 </Tr>
               ))}
             </Tbody>

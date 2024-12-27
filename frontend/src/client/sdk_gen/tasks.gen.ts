@@ -1,5 +1,5 @@
 import { CancelablePromise } from "../core/CancelablePromise";
-import { TasksCreateTaskData, TasksCreateTaskResponse, TasksDeleteTaskData, TasksDeleteTaskResponse, TasksReadTaskData, TasksReadTaskResponse, TasksReadTasksData, TasksReadTasksResponse, TasksUpdateTaskData, TasksUpdateTaskResponse } from "../types_gen/tasks.gen";
+import { TasksCreateTaskData, TasksCreateTaskResponse, TasksDeleteTaskData, TasksDeleteTaskResponse, TasksDeleteTasksData, TasksReadTaskData, TasksReadTaskResponse, TasksReadTasksData, TasksReadTasksResponse, TasksUpdateTaskData, TasksUpdateTaskResponse } from "../types_gen/tasks.gen";
 import { request as __request } from "../core/request"
 import { OpenAPI } from "../core/OpenAPI";
 export class TasksService {
@@ -117,6 +117,24 @@ export class TasksService {
       path: {
         id: data.id,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  public static deleteTasks(
+    data: TasksDeleteTasksData,
+  ): CancelablePromise<TasksDeleteTaskResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/tasks",
+      // path: {
+      //   id: data?.ids
+      //   // id: data?.ids.map(id=>id),
+        
+      // },
+      body: data.ids,
       errors: {
         422: "Validation Error",
       },
