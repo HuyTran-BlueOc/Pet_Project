@@ -16,7 +16,6 @@ import {
 import { type ApiError, CategoriesService, CategoryCreate } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
-import React from "react"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 interface AddCategoryProps {

@@ -1,79 +1,133 @@
-// import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, Table, Tbody, Td, Th, Thead, Tr, Box } from "@chakra-ui/react";
-// import { useEffect, useState } from "react";
-// import { CategoryReadTaskData } from "../../client";  // Import the correct function
-// import { Item } from "../../client/types"; // Assuming `Task` type is defined in your client
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Box,
+  Spinner,
+} from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
+import { TasksService } from "../../client";
 
-// type CategoryTasksModalProps = {
-//   categoryId: string | null;
-//   isOpen: boolean;
-//   onClose: () => void;
-// };
+type CategoryTasksModalProps = {
+  taskid: string | null;
+  categoryId: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+};
 
-// const CategoryTasksModal = ({ categoryId, isOpen, onClose }: CategoryTasksModalProps) => {
-//   const [tasks, setTasks] = useState<Task[]>([]);
-//   const [loading, setLoading] = useState<boolean>(false);
-//   const [error, setError] = useState<string | null>(null);
+const CategoryTasks = ({
+  categoryId,
+  isOpen,
+  onClose,
+}: CategoryTasksModalProps) => {
+  const {
+    data: tasks,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["tasks", categoryId],
+    queryFn: () => TasksService.readTasks({ skip: 0, limit: 100 }),
 
-//   useEffect(() => {
-//     if (categoryId && isOpen) {
-//       setLoading(true);
-//       setError(null);
+    enabled: !!categoryId, // Only run the query if categoryId exists
+  });
 
-//       // Call the API function - assuming it takes an object with an `id` field
-//       CategoryReadTaskData({ id: categoryId })
-//         .then((response) => {
-//           setTasks(response.data); // Ensure `response.data` is the tasks
-//         })
-//         .catch((err) => {
-//           setError("Failed to fetch tasks. Please try again later.");
-//         })
-//         .finally(() => {
-//           setLoading(false);
-//         });
-//     }
-//   }, [categoryId, isOpen]);
+  // Filter tasks by the given categoryId
+  const filteredTasks = tasks?.data.filter((task) =>
+    task?.categories_id?.includes(categoryId ?? "")
+  );
 
-//   return (
-//     <Modal isOpen={isOpen} onClose={onClose}>
-//       <ModalOverlay />
-//       <ModalContent>
-//         <ModalHeader>Tasks for Category: {categoryId}</ModalHeader>
-//         <ModalCloseButton />
-//         <ModalBody>
-//           {loading ? (
-//             <Box>Loading...</Box>
-//           ) : error ? (
-//             <Box color="red">{error}</Box>
-//           ) : tasks.length === 0 ? (
-//             <Box>No tasks found for this category.</Box>
-//           ) : (
-//             <Table size="sm">
-//               <Thead>
-//                 <Tr>
-//                   <Th>Title</Th>
-//                   <Th>Description</Th>
-//                 </Tr>
-//               </Thead>
-//               <Tbody>
-//                 {tasks.map((task) => (
-//                   <Tr key={task.id}>
-//                     <Td>{task.title}</Td>
-//                     <Td>{task.description}</Td>
-//                   </Tr>
-//                 ))}
-//               </Tbody>
-//             </Table>
-//           )}
-//         </ModalBody>
+  // Format due_date to display only the date (MM/DD/YYYY)
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) {
+      return "N/A"; // Fallback if date is undefined
+    }
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US");
+  };
 
-//         <ModalFooter>
-//           <Button colorScheme="blue" onClick={onClose}>
-//             Close
-//           </Button>
-//         </ModalFooter>
-//       </ModalContent>
-//     </Modal>
-//   );
-// };
+  // Function to color status based on the value
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Pending":
+        return "red.500"; // Red for pending
+      case "In_progress":
+        return "yellow.500"; // Yellow for in progress
+      case "Completed":
+        return "green.500"; // Green for completed
+      case "Cancelled":
+        return "gray.500"; // Gray for cancelled
+      default:
+        return "while"; // Default black color if status is unknown
+    }
+  };
 
-// export default CategoryTasksModal;
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <ModalOverlay />
+      <ModalContent maxW="80vw" width="auto">
+        {/* Adjust width by changing maxW to control modal width */}
+        <ModalHeader>Tasks for Category</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          {isLoading ? (
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Spinner size="xl" />
+            </Box>
+          ) : error ? (
+            <Box color="red.500">{`Error: ${error}`}</Box>
+          ) : filteredTasks && filteredTasks.length > 0 ? (
+            <TableContainer>
+              <Table variant="simple" width="100%">
+                <Thead>
+                  <Tr>
+                    <Th>Task Title</Th>
+                    <Th>Description</Th>
+                    <Th>Priority</Th>
+                    <Th>Status</Th>
+                    <Th>Due Date</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredTasks.map((task) => (
+                    <Tr key={task.id}>
+                      <Td>{task.title}</Td>
+                      <Td style={{ wordBreak: "break-word", whiteSpace: "normal" }}>
+                        {task.description || "N/A"}
+                      </Td>
+                      <Td>{task.priority}</Td>
+                      <Td color={getStatusColor(task.status)}>
+                        {task.status}
+                      </Td>
+                      <Td>{formatDate(task.due_date)}</Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box>No tasks available for this category.</Box>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" onClick={onClose}>
+            Close
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+export default CategoryTasks;

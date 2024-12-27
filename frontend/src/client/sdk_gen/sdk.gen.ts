@@ -189,8 +189,6 @@ export class CategoriesService {
     });
   }
 
-
-
 }
 
 export class LoginService {

@@ -56,6 +56,8 @@ def create_task(
             category = session.get(Categories, categories_id)
             if not category:
                 raise HTTPException(status_code=404, detail="Category not found")
+            if not current_user.is_superuser and category.owner_id != current_user.id:
+                raise HTTPException(status_code=400, detail="Not enough permissions")
         
         task_data = task.dict(exclude={"categories_id"})
 

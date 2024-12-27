@@ -22,7 +22,7 @@ import { PaginationFooter } from "../../components/Common/PaginationFooter";
 import AddCategory from "../../components/Categories/AddCategory";
 import DeleteAllCategories from "../../components/Categories/DeleteAllCategory";
 import SearchCategory from "../../components/Categories/SearchCategory";
-// import TaskModal from "../../components/Categories/TaskinCategory";
+import TaskInCategoryModal from "../../components/Categories/TaskinCategory";
 
 const CategoriesSearchSchema = z.object({
   page: z.number().catch(1),
@@ -155,7 +155,6 @@ function CategoriesTable() {
                   <Td
                     onClick={() => openModalWithCategory(category)}
                     _hover={{
-                      color: "white",
                       cursor: "pointer",
                     }}
                   >
@@ -166,7 +165,6 @@ function CategoriesTable() {
                     maxWidth="150px"
                     onClick={() => openModalWithCategory(category)}
                     _hover={{
-                      color: "white",
                       cursor: "pointer",
                     }}
                   >
@@ -178,7 +176,6 @@ function CategoriesTable() {
                     maxWidth="150px"
                     onClick={() => openModalWithCategory(category)}
                     _hover={{
-                      color: "white",
                       cursor: "pointer",
                     }}
                   >
@@ -200,12 +197,13 @@ function CategoriesTable() {
         hasPreviousPage={hasPreviousPage}
       />
 
-      {/* <TaskModal
+      <TaskInCategoryModal
         isOpen={isOpen}
         onClose={onClose}
         categoryId={selectedCategory?.id || null}
+        taskid={selectedCategory?.id || null}
         // categoryTitle={selectedCategory?.title || null}
-      /> */}
+      />
     </>
   );
 }
