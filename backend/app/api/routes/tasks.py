@@ -18,18 +18,40 @@ def get_tasks_by_owner(
     limit: int = 99999
 ) -> Any:
     try:
+        # Query to fetch tasks with category title
         statement = (
-            select(Task)
+            select(Task, Categories)  # Select Task and Category title
+            .join(Categories, Task.categories_id == Categories.id, isouter=True)  # Correct join condition
             .where(Task.owner_id == current_user.id)
             .offset(skip)
             .limit(limit)
         )
         results = session.exec(statement).all()
-
+        
+        print("results", results[0])
+        # Get the count of tasks
         count_statement = select(func.count()).where(Task.owner_id == current_user.id).select_from(Task)
         count = session.exec(count_statement).one() 
 
-        return TasksPublic(data=results, count=count)
+        # Map the results to include category_title
+        tasks = [
+            TaskPublic(
+                id=result.Task.id,
+                owner_id=result.Task.owner_id,
+                categories_id=result.Task.categories_id,
+                title=result.Task.title,
+                description=result.Task.description,
+                status=result.Task.status,
+                priority=result.Task.priority,
+                due_date=result.Task.due_date,
+                created_at=result.Task.created_at,
+                updated_at=result.Task.updated_at,
+                category_title=result.Categories.title  # Access the category title from the query result
+            )
+            for result in results
+        ]
+
+        return TasksPublic(data=tasks, count=count)
     except Exception as e:
         session.rollback()  
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
@@ -47,14 +69,13 @@ def create_task(
     session: SessionDep, 
     current_user: CurrentUser, 
     task: TaskCreate, 
-    # categories_id: Optional[uuid.UUID] = None
 ): 
     try: 
         if task.categories_id:
             category = session.get(Categories, task.categories_id)
             if not category:
                 raise HTTPException(status_code=404, detail="Category not found")
-            if not current_user.is_superuser and task.owner_id != current_user.id:
+            if not current_user.is_superuser:
                 raise HTTPException(status_code=400, detail="Not enough permissions")
         
         task_data = task.dict()
@@ -132,9 +153,7 @@ def delete_task(task_id: uuid.UUID, session: SessionDep):
 
 @router.delete("/{task_id}/categories", response_model=dict)
 def remove_category_from_task(task_id: uuid.UUID, session: SessionDep):
-    """
-    Xóa liên kết giữa một task và category của nó
-    """
+    print(task_id)
     task = session.get(Task, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

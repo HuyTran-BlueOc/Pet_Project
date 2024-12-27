@@ -151,12 +151,14 @@ class Task(TaskBase, table=True):
     category: Optional[Categories] = Relationship(back_populates="tasks")
 class TaskPublic(TaskBase):
     id: uuid.UUID
+    category_title: str = None
     owner_id: Optional[uuid.UUID]
     categories_id: Optional[uuid.UUID]
 
 class TasksPublic(SQLModel):
     data: list[TaskPublic]
     count: int
+    
 class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
