@@ -6,41 +6,42 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
   Button,
-} from "@chakra-ui/react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import React from "react"
-import { useForm } from "react-hook-form"
+} from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import { useForm } from "react-hook-form";
 
-import { CategoriesService, ItemsService, UsersService } from "../../client"
-import useCustomToast from "../../hooks/useCustomToast"
+import { CategoriesService, TasksService, UsersService } from "../../client";
+import useCustomToast from "../../hooks/useCustomToast";
 
 interface DeleteProps {
-  type: string
-  id: string
-  isOpen: boolean
-  onClose: () => void
+  type: string;
+  id: string;
+  isOpen: boolean;
+  onClose: () => void;
+  data?: any;
 }
 
-const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
-  const queryClient = useQueryClient()
-  const showToast = useCustomToast()
-  const cancelRef = React.useRef<HTMLButtonElement | null>(null)
+const Delete = ({ type, id, isOpen, onClose, data }: DeleteProps) => {
+  const queryClient = useQueryClient();
+  const showToast = useCustomToast();
+  const cancelRef = React.useRef<HTMLButtonElement | null>(null);
   const {
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm()
+  } = useForm();
 
   const deleteEntity = async (id: string) => {
-    if (type === "Category"){
-      await CategoriesService.deleteCategory({ id: id })
-    } else if (type === "Item") {
-      await ItemsService.deleteItem({ id: id })
+    if (type === "Category") {
+      await CategoriesService.deleteCategory({ id: id });
+    } else if (type === "Task") {
+      await TasksService.deleteTask({ id: id });
     } else if (type === "User") {
-      await UsersService.deleteUser({ userId: id })
+      await UsersService.deleteUser({ userId: id });
     } else {
-      throw new Error(`Unexpected type: ${type}`)
+      throw new Error(`Unexpected type: ${type}`);
     }
-  }
+  };
 
   const mutation = useMutation({
     mutationFn: deleteEntity,
@@ -48,7 +49,7 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
       showToast(
         "Success",
         `The ${type.toLowerCase()} was deleted successfully.`,
-        "success",
+        "success"
       );
       onClose();
     },
@@ -56,27 +57,21 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
       showToast(
         "An error occurred.",
         `An error occurred while deleting the ${type.toLowerCase()}.`,
-        "error",
+        "error"
       );
     },
     onSettled: () => {
-      // Cập nhật queryKey để bao gồm "categories"
-      const queryKey = 
-        type === "Item"
-          ? "items"
-          : type === "User"
-          ? "users"
-          : "categories"; // Thêm "categories" nếu type là "Category"
-  
+      const queryKey =
+        type === "Task" ? "tasks" : type === "User" ? "users" : "categories";
       queryClient.invalidateQueries({
         queryKey: [queryKey],
       });
     },
   });
-  
+
   const onSubmit = async () => {
-    mutation.mutate(id)
-  }
+    mutation.mutate(id);
+  };
 
   return (
     <>
@@ -90,15 +85,46 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
         <AlertDialogOverlay>
           <AlertDialogContent as="form" onSubmit={handleSubmit(onSubmit)}>
             <AlertDialogHeader>Delete {type}</AlertDialogHeader>
-
             <AlertDialogBody>
               {type === "User" && (
-                <span>
+                <p>
                   All items associated with this user will also be{" "}
-                  <strong>permantly deleted. </strong>
-                </span>
+                  <strong>permanently deleted.</strong>
+                  <br />
+                  <strong>Email:</strong> {data.email}
+                  <br />
+                  <strong>Full Name:</strong> {data.full_name}
+                </p>
               )}
-              Are you sure? You will not be able to undo this action.
+              {type === "Task" && (
+                <p>
+                  All items associated with this Task will also be{" "}
+                  <strong>permanently deleted.</strong>
+                  <br />
+                  <strong>Title:</strong> {data.title}
+                  <br />
+                  <strong>created_at:</strong> {data.created_at}
+                  <br />
+                  <strong>Description:</strong> {data.description}
+                  <br />
+                  <strong>Due_date:</strong> {data.due_date}
+                  <br />
+                  <strong>Status:</strong> {data.status}
+                  <br />
+                  <strong>Priority:</strong> {data.priority}
+                </p>
+              )}
+              {type === "Category" && (
+                <p>
+                  All items associated with this Category will also be{" "}
+                  <strong>permanently deleted.</strong>
+                  <br />
+                  <strong>Title:</strong> {data.title}
+                  <br />
+                  <strong>Description:</strong> {data.description}
+                </p>
+              )}
+              {/* <p>Are you sure? You will not be able to undo this action.</p> */}
             </AlertDialogBody>
 
             <AlertDialogFooter gap={3}>
@@ -117,7 +143,7 @@ const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {
         </AlertDialogOverlay>
       </AlertDialog>
     </>
-  )
-}
+  );
+};
 
-export default Delete
+export default Delete;

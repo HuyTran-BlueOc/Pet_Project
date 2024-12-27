@@ -48,6 +48,17 @@ const Navbar = ({ type, addModalAs, deleteModalAs }: NavbarProps) => {
         />
         {/* <Search search={search} /> */}
       </Flex>
+      <AddModal isOpen={addModal.isOpen} onClose={addModal.onClose} />
+      {/* <DeleteModal
+          isOpen={deleteModal.isOpen}
+          onClose={deleteModal.onClose}
+        /> */}
+      {DeleteModal && (
+        <DeleteModal
+          isOpen={deleteModal.isOpen}
+          onClose={deleteModal.onClose}
+        />
+      )}
     </>
   );
 };

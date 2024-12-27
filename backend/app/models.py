@@ -1,7 +1,9 @@
 import uuid
 
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, ARRAY
+from sqlalchemy import Column 
+from sqlalchemy.dialects.postgresql import JSONB
 
 from enum import Enum
 from typing import Optional, List
@@ -145,6 +147,8 @@ class TaskUpdate(SQLModel):
     status: Optional[ETaskStatus] = None
     priority: Optional[ETaskPriority] = None
     due_date: Optional[datetime] = None
+    categories_id: Optional[uuid.UUID] = None
+    notes_id: Optional[uuid.UUID] = None
 
 # Task database model
 class Task(TaskBase, table=True):
@@ -159,7 +163,7 @@ class TaskPublic(TaskBase):
     id: uuid.UUID
     owner_id: Optional[uuid.UUID]
     categories_id: Optional[uuid.UUID]
-    notes_id: Optional[uuid.UUID]
+    notes_id: Optional[List[uuid.UUID]]
 
 class TasksPublic(SQLModel):
     data: list[TaskPublic]
