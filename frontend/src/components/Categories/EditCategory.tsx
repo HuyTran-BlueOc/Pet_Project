@@ -7,7 +7,6 @@ import {
   CategoriesService,
 } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
-import React from "react";
 import { handleError } from "../../utils";
 import {
   FormControl,

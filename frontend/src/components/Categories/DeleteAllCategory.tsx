@@ -8,7 +8,6 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
-import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CategoriesService } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
