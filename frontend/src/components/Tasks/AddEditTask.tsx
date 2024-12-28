@@ -20,13 +20,13 @@ import {
   ETaskStatus,
   TaskInit,
   TaskPublic,
-  TasksService,
 } from "../../client";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
 import { useQuery } from "@tanstack/react-query";
+import { TasksService } from "../../client/sdk_gen/tasks.gen";
 
 interface AddEditTaskProps {
   task?: TaskPublic;
@@ -192,7 +192,26 @@ function AddEditTask(props: AddEditTaskProps) {
                 ))
               )}
             </Select>
-          </FormControl>
+          </FormControl> 
+          <FormControl mt={4}>
+        <FormLabel htmlFor="categories_id">Category ID</FormLabel>
+        <Select
+          id="categories_id"
+          placeholder="Select category"
+          {...register("categories_id")}
+          isDisabled={isLoading}
+        >
+          {isLoading ? (
+            <option>Loading...</option>
+          ) : (
+            categories?.data.map((category: any) => (
+              <option key={category.id} value={category.id}>
+                {category.title}
+              </option>
+            ))
+          )}
+        </Select>
+      </FormControl>
         </ModalBody>
         <ModalFooter gap={3} style={{ justifyContent: "space-between" }}>
           <div>

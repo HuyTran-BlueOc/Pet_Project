@@ -6,8 +6,8 @@ import {
   MenuList,
   useDisclosure,
 } from "@chakra-ui/react";
-import { BsThreeDotsVertical } from "react-icons/bs";
-import { FiEdit, FiEye, FiTrash } from "react-icons/fi";
+import { BsThreeDotsVertical,} from "react-icons/bs";
+import { FiEdit, FiEye, FiTrash  } from "react-icons/fi";
 
 import type { CategoryPublic, TaskPublic, UserPublic } from "../../client";
 import EditUser from "../Admin/EditUser";
@@ -15,7 +15,7 @@ import EditCategory from "../Categories/EditCategory";
 import Delete from "./DeleteAlert";
 import AddEditTask from "../Tasks/AddEditTask";
 import ViewDetail from "../Tasks/ViewDetail";
-import { FaPlus } from "react-icons/fa";
+import { BiNote } from "react-icons/bi";
 
 interface ActionsMenuProps {
   type: string;
@@ -25,6 +25,7 @@ interface ActionsMenuProps {
 
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
   const editModal = useDisclosure();
+  const viewNotes = useDisclosure();
   const viewDetailModal = useDisclosure();
   const deleteModal = useDisclosure();
 
@@ -39,12 +40,20 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         />
         <MenuList>
           {type == "Task" && (
-            <MenuItem
-              onClick={viewDetailModal.onOpen}
-              icon={<FiEye  fontSize="16px" />}
-            >
-              View detail task
-            </MenuItem>
+            <>
+              <MenuItem
+                onClick={viewDetailModal.onOpen}
+                icon={<FiEye fontSize="16px" />}
+              >
+                View detail task
+              </MenuItem>
+              <MenuItem
+                onClick={viewNotes.onOpen}
+                icon={<BiNote fontSize="16px" />}
+              >
+                View Notes
+              </MenuItem>
+            </>
           )}
           
           
@@ -93,8 +102,6 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           isOpen={viewDetailModal.isOpen}
           onClose={viewDetailModal.onClose}
         />
-        
-        
       </Menu>
     </>
   );

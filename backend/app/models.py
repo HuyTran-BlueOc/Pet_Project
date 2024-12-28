@@ -1,7 +1,9 @@
 import uuid
 
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, ARRAY
+from sqlalchemy import Column 
+from sqlalchemy.dialects.postgresql import JSONB
 
 from enum import Enum
 from typing import Optional, List
@@ -66,6 +68,7 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     categories: list["Categories"] = Relationship(back_populates="owner", cascade_delete=True)
+    notes: list["Notes"] = Relationship(back_populates="owner", cascade_delete=True)
     tasks: list["Task"] = Relationship(back_populates="owner", cascade_delete=True)
 
 # Properties to return via API, id is always required
@@ -116,6 +119,8 @@ class CategoryPublic(CategoriesBase):
 class CategoriesPublic(SQLModel):
     data: list[CategoryPublic]
     count: int
+    
+
 
 
 # =========================
@@ -131,6 +136,7 @@ class TaskBase(SQLModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     categories_id: Optional[uuid.UUID] = None
+    notes_id: Optional[uuid.UUID] = None
 
 class TaskCreate(TaskBase):
     pass
@@ -142,6 +148,7 @@ class TaskUpdate(SQLModel):
     priority: Optional[ETaskPriority] = None
     due_date: Optional[datetime] = None
     categories_id: Optional[uuid.UUID] = None
+    notes_id: Optional[uuid.UUID] = None
 
 # Task database model
 class Task(TaskBase, table=True):
@@ -150,12 +157,14 @@ class Task(TaskBase, table=True):
     categories_id: Optional[uuid.UUID] = Field(foreign_key="categories.id", nullable=True)
     owner: Optional[User] = Relationship(back_populates="tasks")
     category: Optional[Categories] = Relationship(back_populates="tasks")
+    note: list["Notes"] = Relationship(back_populates="task", cascade_delete=True)
     
 class TaskPublic(TaskBase):
     id: uuid.UUID
     category_title: str = None
     owner_id: Optional[uuid.UUID]
     categories_id: Optional[uuid.UUID]
+    notes_id: Optional[List[uuid.UUID]]
 
 class TasksPublic(SQLModel):
     data: list[TaskPublic]
@@ -164,6 +173,46 @@ class TasksPublic(SQLModel):
 class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
+
+
+# =========================
+# NOTES MODELS
+# =========================
+
+# Shared properties
+class NoteBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+
+# Properties to receive on item creation
+class NoteCreate(NoteBase):
+    pass
+
+class NoteUpdate(SQLModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    
+# Database model, database table inferred from class name
+class Notes(NoteBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)  # UUID primary key
+    task:  Optional[Task]= Relationship(back_populates="note")
+    task_id: uuid.UUID = Field(foreign_key="task.id", nullable=False, ondelete="CASCADE")
+    owner: Optional[User] = Relationship(back_populates="notes")
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+
+# Properties to return via API, id is always required
+class NotePublic(NoteBase):
+    id: uuid.UUID
+    title: str
+    description: str | None
+    task_id: uuid.UUID
+    owner_id: uuid.UUID
+
+
+class NotesPublic(SQLModel):
+    data: list[NotePublic]
+    count: int
+
 
 # =========================
 # AUTH AND GENERIC MODELS

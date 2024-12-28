@@ -217,6 +217,7 @@ function Tasks() {
       <Navbar
         type={"Task"}
         addModalAs={AddEditTask}
+        deleteModalAs={() => (<></>)}
         // update_tasks_status: List[id]          --    --            --navbarPage
         // delete_tasks: List[id]                 --    --            --navbarPage
         deleteTasks = {DeleteTasksById}

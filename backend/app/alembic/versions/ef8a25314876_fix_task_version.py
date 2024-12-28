@@ -1,8 +1,8 @@
-"""update categoies-new in taskbase 
+"""fix task version
 
-Revision ID: 222b78c4f96c
-Revises: 020094d577b8
-Create Date: 2024-12-24 13:39:45.595524
+Revision ID: ef8a25314876
+Revises: ab5dc49edd43
+Create Date: 2024-12-27 13:07:57.012564
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '222b78c4f96c'
-down_revision: Union[str, None] = '020094d577b8'
+revision: str = 'ef8a25314876'
+down_revision: Union[str, None] = 'ab5dc49edd43'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
