@@ -14,7 +14,7 @@ import {
     Stack,
     Text,
 } from "@chakra-ui/react";
-import AccordionConfig from "../Common/AccordionConfig"
+import AccordionConfig from "./AccordionConfig"
 import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
 import { ApiError, INote, INoteInit, INotesDelete, TasksService } from '../../client';
