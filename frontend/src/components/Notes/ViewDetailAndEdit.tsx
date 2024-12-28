@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import {
-    AccordionItem,
     AlertDialog,
     AlertDialogBody,
     AlertDialogContent,
@@ -11,13 +10,17 @@ import {
     Button,
     Flex,
     Input,
-    Spinner,
+    Skeleton,
     Stack,
     Text,
 } from "@chakra-ui/react";
 import AccordionConfig from "../Common/AccordionConfig"
 import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
+import { ApiError, INote, INoteInit, INotesDelete, TasksService } from '../../client';
+import useCustomToast from '../../hooks/useCustomToast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { handleError } from '../../utils';
 
 interface ViewDetailAndEditProps {
     id: string;
@@ -27,58 +30,136 @@ interface ViewDetailAndEditProps {
 
 interface FormData {
     title: string;
-    content: string;
+    description: string;
 }
-
-const items = [
-    { value: "first-item", title: "First Item", content: "Some value 1..." },
-    { value: "second-item", title: "Second Item", content: "Some value 2..." },
-    { value: "third-item", title: "Third Item", content: "Some value 3..." },
-]
 
 const ViewDetailAndEdit: React.FC<ViewDetailAndEditProps> = ({
     id,
     isOpen,
     onClose
 }) => {
+    const showToast = useCustomToast();
+    const queryClient = useQueryClient();
     const cancelRef = React.useRef<HTMLButtonElement | null>(null);
     const [selectedItems, setSelectedItems] = React.useState<string[]>([]);
+    const [selectedNote, setSelectedNote] = useState<INote | null>(null);
     const [isAdding, setIsAdding] = useState(false);
-    const isAllSelected = selectedItems.length === items.length && items.length > 0;
-
     const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
+    
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["notes", id],
+        queryFn: async () => {
+            try {
+                return await TasksService.readNotesByIdTask({ id });
+            } catch (err) {
+                showToast(
+                "Error",
+                "Failed to load note details. Please try again later.",
+                "error"
+                );
+                throw err;
+            }
+        },
+        enabled: isOpen, 
+    });
 
-    const handleSelectItem = (value: string) => {
-        setSelectedItems((prev) => prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]);
+    const allnotes: INote[] = data?.data ?? [];
+
+    const isAllSelected = selectedItems.length === allnotes?.length && allnotes?.length > 0;
+
+    const handleSelectItem = (idNote: string) => {
+        setSelectedItems((prev) => prev.includes(idNote) ? prev.filter((item) => item !== idNote) : [...prev, idNote]);
     }
 
     const handleSelectAll = () => {
         if (isAllSelected) {
             setSelectedItems([]);
         } else {
-            setSelectedItems(items.map((item) => item.value));
+            setSelectedItems(allnotes?.map((item) => item.id));
         }
     }
 
-    const handleAddClick = () => {
-        setIsAdding(true);
-    };
+    const mutationAddAndUpdate = useMutation({
+        mutationFn: async (data: INoteInit) => {
+            if(selectedNote){
+                await TasksService.updateNote({
+                    note_id: selectedNote.id,
+                    requestBody: {
+                        title: data.title,
+                        description: data.description
+                    }
+                })
+            }else{
+                await TasksService.createNote({ 
+                    task_id: id,
+                    requestBody: data
+                });
+            }
+        },
+      
+        onSuccess: () => {
+            showToast("Success!", `Note ${selectedNote ? 'updated' : 'created'} successfully.`, "success");
+            setSelectedNote(null)
+            setIsAdding(false);
+            reset();
+        },
+        onError: (err: ApiError) => {
+          handleError(err, showToast);
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["notes"] });
+        },
+    });
 
     const handleSaveClick = (data: FormData) => {
-        // Handle save logic here
-        console.log('Saved data:', data);
+        mutationAddAndUpdate.mutate(data);
+    };
+
+    const mutationDelete = useMutation({
+        mutationFn: async (data: INotesDelete) => {
+          await TasksService.deleteNotesByIds({
+            ids: data.ids,
+          }); 
+        },
+        onSuccess: () => {
+          showToast(
+            "Success",
+            "Notes deleted successfully.",
+            "success"
+          );
+          queryClient.invalidateQueries({ queryKey: ["notes"] });
+          reset();
+          setSelectedItems([]);
+        },
+        onError: () => {
+          showToast(
+            "Error",
+            "An error occurred while deleting notes.",
+            "error"
+          );
+        },
+    });
+
+    const handleCancelClick = () => {
+        setSelectedNote(null);
         setIsAdding(false);
         reset();
     };
 
-    const handleCancelClick = () => {
-        setIsAdding(false);
-        reset();
+    const handleAddClick = () => {
+        setSelectedNote(null);
+        setIsAdding(true);
+        reset({ title: '', description: '' });
+    };
+
+    const handleEditClick = (note: INote) => {
+        setSelectedNote(note);
+        setIsAdding(true);
+        reset(note);
     };
 
     const handleDeleteClick = () => {
-        // Handle delete logic here
-        console.log('Delete items:', selectedItems);
+        mutationDelete.mutate({ ids: selectedItems });
     }
 
     return (
@@ -102,10 +183,10 @@ const ViewDetailAndEdit: React.FC<ViewDetailAndEditProps> = ({
                                     />
                                     {errors.title && <span>{errors.title.message}</span>}
                                     <Input
-                                        placeholder="Content"
-                                        {...register('content', { required: 'Content is required' })}
+                                        placeholder="Description"
+                                        {...register('description', { required: 'Description is required' })}
                                     />
-                                    {errors.content && <span>{errors.content.message}</span>}
+                                    {errors.description && <span>{errors.description.message}</span>}
                                 </Stack>
                                 <Flex gap={4} justify="flex-end" mt={4}>
                                     <Button background={'teal'} type="submit">Save</Button>
@@ -113,7 +194,7 @@ const ViewDetailAndEdit: React.FC<ViewDetailAndEditProps> = ({
                                 </Flex>
                             </Box>
                         ) : (
-                            <>
+                            <Box width={'100%'}>
                                 <Flex gap={4} justify={'space-between'} align="center">
                                     <div style={{ marginLeft: "6px"}}>
                                         <input type="checkbox" checked={isAllSelected} onClick={handleSelectAll} readOnly/>
@@ -124,9 +205,10 @@ const ViewDetailAndEdit: React.FC<ViewDetailAndEditProps> = ({
                                     </Flex>
                                 </Flex>
                                 <Stack gap="4">
-                                    <AccordionConfig items={items} selectedItems={selectedItems} handleSelectItem={handleSelectItem}/>
+                                    {isLoading ? <Skeleton height={'6'} isLoaded={!isLoading}/> :<AccordionConfig onEdit={handleEditClick} items={allnotes} selectedItems={selectedItems} handleSelectItem={handleSelectItem}/>}
+                                    {error && <Text color={'red'}>{error.message}</Text>}
                                 </Stack>
-                            </>
+                            </Box>
                         )}  
                     </AlertDialogBody>
                     <AlertDialogFooter gap={3}>

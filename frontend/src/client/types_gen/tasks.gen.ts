@@ -98,3 +98,39 @@ export enum ETaskPriority {
   MEDIUM = "Medium",
   LOW = "Low",
 }
+
+
+//Notes
+export interface INoteInit {
+  title: string;
+  description: string;
+}
+
+export interface INoteCreate {
+  task_id: string;
+  requestBody: INoteInit;
+}
+
+export interface INoteUpdate {
+  note_id: string;
+  requestBody: INoteInit;
+}
+
+export interface INotesDelete {
+  ids: Array<string>;
+}
+
+export interface INote {
+  id: string;
+  task_id: string;
+  title: string;
+  description: string;
+}
+
+export interface IListNote {
+  data: Array<INote>;
+  count: number;
+}
+
+
+export interface INotesDataByIdTask extends TasksReadTaskData {}

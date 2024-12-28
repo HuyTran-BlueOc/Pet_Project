@@ -65,8 +65,6 @@ function TasksTable() {
     }
   }, [page, queryClient, hasNextPage]);
 
-  console.log(Tasks?.data)
-
   return (
     <>
       <TableContainer>

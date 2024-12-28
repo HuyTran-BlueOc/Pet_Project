@@ -48,8 +48,6 @@ function AddEditTask(props: AddEditTaskProps) {
   const queryClient = useQueryClient();
   const { data: categories, isLoading, error } = useAllCategories();
 
-  console.log("categoriesall",categories)
-
   const {
     register,
     handleSubmit,

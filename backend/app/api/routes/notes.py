@@ -102,21 +102,16 @@ def get_notes_by_task_id(task_id: uuid.UUID, current_user: CurrentUser, session:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
     
     
-@router.put('/{note_id}', response_model=NotePublic)
-def update_note(*, session: SessionDep, current_user: CurrentUser, note_id: uuid.UUID, task_update: NoteUpdate, task_id: Optional[uuid.UUID] = None,):
+@router.patch('/{note_id}', response_model=NotePublic)
+def update_note(*, session: SessionDep, current_user: CurrentUser, note_id: uuid.UUID, note_update: NoteUpdate):
     try: 
         note = session.get(Notes, note_id)
         if not note:
             raise HTTPException(status_code=404, detail="Note not found")
         if not current_user.is_superuser and note.owner_id != current_user.id:
             raise HTTPException(status_code=400, detail="Not enough permissions")
-        if task_id:
-            task = session.get(Task, task_id)
-            if not task:
-                raise HTTPException(status_code=404, detail="Task not found")
-        note.title = task_update.title
-        note.description = task_update.description
-        note.task_id = task_id
+        note.title = note_update.title
+        note.description = note_update.description
         session.add(note)
         session.commit()
         session.refresh(note)

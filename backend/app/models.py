@@ -204,6 +204,7 @@ class NotePublic(NoteBase):
     title: str
     description: str | None
     task_id: uuid.UUID
+    owner_id: uuid.UUID
 
 
 class NotesPublic(SQLModel):

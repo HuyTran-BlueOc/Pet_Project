@@ -1,7 +1,9 @@
-import { useColorModeValue } from '@chakra-ui/react';
-import React, { useState, ReactNode } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import { AiFillUpSquare, AiFillDownSquare } from "react-icons/ai";
+import { INote } from '../../client';
+import { FaEdit } from 'react-icons/fa';
 
 const AccordionSection = styled.div`
   display: flex;
@@ -35,29 +37,40 @@ const BoxInsideTitle2 = styled.div`
     align-items: center;
 `;
 
-const AccordionContent = styled.div<{ $isOpen: boolean }>`
+const BoxInsideTitle3 = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+`;
+
+const AccordionContent = styled(motion.div)<{ $isOpen: boolean }>`
   background: gray;
   color: white;
   border: 1px solid #ddd;
   border-top: none;
   overflow: hidden;
   max-height: ${({ $isOpen }) => ($isOpen ? '100%' : '0')};
-  transition: max-height 0.3s ease;
 `;
 
 interface AccordionItemProps {
-    title: string;
-    content: ReactNode;
+    note: INote;
     isSelected?: boolean;
     onSelect: () => void;
+    onEdit: () => void;
 }
 
-const AccordionItem: React.FC<AccordionItemProps> = ({ title, content, isSelected, onSelect }) => {
+const AccordionItem: React.FC<AccordionItemProps> = ({ note, isSelected, onSelect, onEdit }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleCheckboxClick = (event: React.MouseEvent) => {
         event.stopPropagation();
         onSelect();
+    };
+
+    const handleEditClick = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        onEdit();
     };
 
     return (
@@ -71,30 +84,45 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ title, content, isSelecte
                             onClick={handleCheckboxClick} 
                             readOnly
                         />
-                        <div>{title}</div>
+                        <div>{note.title}</div>
                     </BoxInsideTitle2>
-                    <div>{isOpen ? <AiFillUpSquare /> : <AiFillDownSquare />}</div>
+                    <BoxInsideTitle3>
+                        <FaEdit onClick={handleEditClick}/>
+                        {isOpen ? <AiFillUpSquare /> : <AiFillDownSquare />}
+                    </BoxInsideTitle3>
                 </BoxInsideTitle>
             </AccordionTitle>
-            <AccordionContent $isOpen={isOpen}>
-                <div style={{ padding: '1rem' }}>{content}</div>
+            <AccordionContent 
+                $isOpen={isOpen}
+                initial={{ height: 0 }} 
+                animate={{ height: isOpen ? 'auto' : 0 }} 
+                transition={{ duration: 0.3 }}
+            >
+                <div style={{ padding: '1rem' }}>{note.description}</div>
             </AccordionContent>
         </Box>
     );
 };
 
 interface AccordionProps {
-    items: any[];
+    items: INote[];
     selectedItems: string[];
-    handleSelectItem: (value: string) => void;
+    handleSelectItem: (id: string) => void;
+    onEdit: (note: INote) => void;
 }
 
-const AccordionConfig: React.FC<AccordionProps> = ({ items, selectedItems, handleSelectItem }) => {
+const AccordionConfig: React.FC<AccordionProps> = ({ items, selectedItems, handleSelectItem, onEdit }) => {
 
     return (
         <AccordionSection>
-            {items.map((item: any, index) => (
-                <AccordionItem key={index} isSelected={selectedItems.includes(item?.value)} onSelect={() => handleSelectItem(item?.value)} title={item.title} content={item.content} />
+            {items.map((item: INote, index) => (
+                <AccordionItem 
+                    key={index} 
+                    note={item}
+                    isSelected={selectedItems.includes(item?.id)} 
+                    onSelect={() => handleSelectItem(item?.id)} 
+                    onEdit={() => onEdit(item)}
+                />
             ))}
         </AccordionSection>
     );
