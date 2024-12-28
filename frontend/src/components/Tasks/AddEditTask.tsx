@@ -26,7 +26,6 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
-import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";
 
 interface AddEditTaskProps {
@@ -48,7 +47,9 @@ function AddEditTask(props: AddEditTaskProps) {
   const queryClient = useQueryClient();
   const { data: categories, isLoading, error } = useAllCategories();
 
-  console.log("categoriesall",categories)
+  const handleRemind = () => {
+    console.log("remind");
+  };
 
   const {
     register,
@@ -64,7 +65,7 @@ function AddEditTask(props: AddEditTaskProps) {
       status: ETaskStatus.PENDING,
       priority: ETaskPriority.MEDIUM,
       due_date: "",
-      categories_id: uuidv4(),
+      categories_id: null,
     },
   });
 
@@ -79,7 +80,7 @@ function AddEditTask(props: AddEditTaskProps) {
         return TasksService.createTask({ requestBody: data });
       }
     },
-  
+
     onSuccess: () => {
       task?.id
         ? showToast("Success!", "Task updated successfully.", "success")
@@ -94,7 +95,6 @@ function AddEditTask(props: AddEditTaskProps) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
-  
 
   const onSubmit: SubmitHandler<TaskInit> = (data) => {
     const taskData = { ...data };
@@ -174,51 +174,48 @@ function AddEditTask(props: AddEditTaskProps) {
               type="date"
             />
           </FormControl>
-
-          {/* <FormControl mt={4}>
-            <FormLabel htmlFor="categories_title">Category ID</FormLabel>
+          <FormControl mt={4}>
+            <FormLabel htmlFor="categories_id">Category ID</FormLabel>
             <Select
               id="categories_id"
+              placeholder="Select category"
               {...register("categories_id")}
+              isDisabled={isLoading}
             >
-              {Object.values(ETaskPriority).map((cattegory) => (
-                <option key={cattegory.id} value={cattegory.title}>
-                  {cattegory.title}
-                </option>
-              ))}
+              {isLoading ? (
+                <option>Loading...</option>
+              ) : (
+                categories?.data.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.title}
+                  </option>
+                ))
+              )}
             </Select>
-          </FormControl> */}
-          <FormControl mt={4}>
-        <FormLabel htmlFor="categories_id">Category ID</FormLabel>
-        <Select
-          id="categories_id"
-          placeholder="Select category"
-          {...register("categories_id")}
-          isDisabled={isLoading}
-        >
-          {isLoading ? (
-            <option>Loading...</option>
-          ) : (
-            categories?.data.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.title}
-              </option>
-            ))
-          )}
-        </Select>
-      </FormControl>
+          </FormControl>
         </ModalBody>
-
-        <ModalFooter gap={3}>
-          <Button
-            variant="primary"
-            type="submit"
-            isLoading={isSubmitting}
-            isDisabled={!isDirty}
-          >
-            Save
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
+        <ModalFooter gap={3} style={{ justifyContent: "space-between" }}>
+          <div>
+            <Button
+              variant="primary"
+              isLoading={isSubmitting}
+              isDisabled={!isDirty}
+              onClick={handleRemind}
+            >
+              Remind
+            </Button>
+          </div>
+          <div style={{ display: "flex", gap: "12px" }}>
+            <Button
+              variant="primary"
+              type="submit"
+              isLoading={isSubmitting}
+              isDisabled={!isDirty}
+            >
+              Save
+            </Button>
+            <Button onClick={onClose}>Cancel</Button>
+          </div>
         </ModalFooter>
       </ModalContent>
     </Modal>

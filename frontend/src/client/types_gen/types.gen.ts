@@ -243,3 +243,11 @@ export type UtilsHealthCheckResponse = boolean
 // # TASK 
 // # =========================
 export * from "./tasks.gen"
+
+// # =========================
+// # TASK 
+// # =========================
+export type NoteCreate = {
+  title: string
+  description?: string | null
+}

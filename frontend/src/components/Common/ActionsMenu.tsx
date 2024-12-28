@@ -15,6 +15,7 @@ import EditCategory from "../Categories/EditCategory";
 import Delete from "./DeleteAlert";
 import AddEditTask from "../Tasks/AddEditTask";
 import ViewDetail from "../Tasks/ViewDetail";
+import { FaPlus } from "react-icons/fa";
 
 interface ActionsMenuProps {
   type: string;
@@ -45,6 +46,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
               View detail task
             </MenuItem>
           )}
+          
+          
           <MenuItem
             onClick={editModal.onOpen}
             icon={<FiEdit fontSize="16px" />}
@@ -90,6 +93,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           isOpen={viewDetailModal.isOpen}
           onClose={viewDetailModal.onClose}
         />
+        
+        
       </Menu>
     </>
   );

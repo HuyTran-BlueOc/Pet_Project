@@ -20,6 +20,7 @@ export type TaskInit = {
   priority:ETaskPriority;
   due_date?: string;
   categories_id?:string | null;
+  categories_title?:string | null;
 };
 
 export type TaskPublic = {
@@ -33,6 +34,7 @@ export type TaskPublic = {
   categories_id?:string;
   created_at:string;
   updated_at:string;
+  category_title?:string | null;
 };
 
 export type TasksPublic = {
@@ -76,6 +78,10 @@ export type TasksUpdateTaskResponse = TaskPublic;
 
 export type TasksDeleteTaskData = {
   id: string;
+};
+
+export type TasksDeleteTasksData = {
+  ids: string[];
 };
 
 export type TasksDeleteTaskResponse = Message;
