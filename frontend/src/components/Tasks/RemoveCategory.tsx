@@ -12,22 +12,22 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TasksService } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
-import { useSelectedTasks } from "../../context/SelectedTasksContext";
 
 interface DeleteTasksProps {
   isOpen: boolean;
   onClose: () => void;
+  id: string;
 }
 
-const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
+const RemoveCatrgoryFromTask = ({ isOpen, onClose, id }: DeleteTasksProps) => {
   const queryClient = useQueryClient();
   const showToast = useCustomToast();
 
-  const { selectedTasks } = useSelectedTasks();
+  // const { selectedTasks } = useSelectedTasks();
 
   const mutation = useMutation({
-    mutationFn: async (taskIds: string[]) => {
-      await TasksService.deleteTasks({ ids: taskIds });
+    mutationFn: async (id: string) => {
+      await TasksService.removeCategoryfromTask({ id: id });
     },
     onSuccess: () => {
       showToast(
@@ -48,7 +48,7 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
   });
 
   const handleDelete = () => {
-    mutation.mutate(selectedTasks.map((taskId) => taskId.id));
+    mutation.mutate(id);
   };
 
   return (
@@ -60,7 +60,7 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Confirm Deletion task</ModalHeader>
+        <ModalHeader>Confirm remove category form task</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           {/* <p>
@@ -79,12 +79,11 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
             <br />
             <strong>Priority:</strong> {data.priority}
           </p> */}
-          Are you sure you want to delete all categories? This action cannot be
-          undone.
+         Are you sure you want to remove the category from the task? This action cannot be undone.
         </ModalBody>
         <ModalFooter gap={3}>
           <Button variant="danger" onClick={handleDelete}>
-            Delete All
+            remove category
           </Button>
           <Button onClick={onClose}>Cancel</Button>
         </ModalFooter>
@@ -93,4 +92,4 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
   );
 };
 
-export default DeleteTasksById;
+export default RemoveCatrgoryFromTask;

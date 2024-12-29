@@ -18,22 +18,42 @@ def get_tasks_by_owner(
     limit: int = 99999
 ) -> Any:
     try:
+        # Query để lấy tasks cùng với category (nếu có)
         statement = (
-            select(Task)
+            select(Task, Categories)  # Lấy cả Task và Categories
+            .join(Categories, Task.categories_id == Categories.id, isouter=True)  # Outer join để bao gồm cả task không có category
             .where(Task.owner_id == current_user.id)
             .offset(skip)
             .limit(limit)
         )
         results = session.exec(statement).all()
 
+        # Lấy tổng số lượng task
         count_statement = select(func.count()).where(Task.owner_id == current_user.id).select_from(Task)
-        count = session.exec(count_statement).one() 
+        count = session.exec(count_statement).one()
 
-        return TasksPublic(data=results, count=count)
+        # Map kết quả để bao gồm cả task không có category
+        tasks = [
+            TaskPublic(
+                id=result.Task.id,
+                owner_id=result.Task.owner_id,
+                categories_id=result.Task.categories_id,
+                title=result.Task.title,
+                description=result.Task.description,
+                status=result.Task.status,
+                priority=result.Task.priority,
+                due_date=result.Task.due_date,
+                created_at=result.Task.created_at,
+                updated_at=result.Task.updated_at,
+                category_title=result.Categories.title if result.Categories else ""  # Kiểm tra nếu Categories tồn tại
+            )
+            for result in results
+        ]
+
+        return TasksPublic(data=tasks, count=count)
     except Exception as e:
-        session.rollback()  
+        session.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
 
 @router.get("/{task_id}", response_model=TaskPublic)
 def get_task(session: SessionDep, current_user: CurrentUser, task_id: uuid.UUID ):
@@ -99,7 +119,7 @@ def update_task(*, session: SessionDep, current_user: CurrentUser, task_id: uuid
     session.refresh(task)
     return task
 
-@router.delete("/tasks/{task_id}", response_model=dict)
+@router.delete("/{task_id}", response_model=dict)
 def delete_task(task_id: uuid.UUID, current_user: CurrentUser, session: SessionDep):
     task = session.get(Task, task_id)
     if not task:
@@ -144,7 +164,7 @@ def update_tasks_status(
     return {"detail": f"{len(tasks)} tasks updated successfully"}
 
 
-@router.delete("/tasks", response_model=dict)
+@router.delete("/", response_model=dict)
 def delete_tasks(task_ids: List[uuid.UUID], session: SessionDep, current_user: CurrentUser):
     # Fetch tasks using the task_ids
     tasks = session.exec(select(Task).where(Task.id.in_(task_ids))).all()
@@ -193,61 +213,6 @@ def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_u
 
     return {"detail": "Category removed from task successfully"}
 
-
-# ===================
-# fix search
-# ===================
-
-@router.get("/search", response_model=List[TasksPublic])
-def search_tasks(
-    session: SessionDep, 
-    title: Optional[str] = Query(None),
-    category_title: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
-    priority: Optional[str] = Query(None),
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    categories_id: Optional[uuid.UUID] = None
-):
-    try :
-        """
-        Tìm kiếm và lọc tasks theo tiêu đề, trạng thái, độ ưu tiên, ngày hạn chót.
-        """
-        query = session.query(Task).join(Categories, Task.categories_id == categories_id)
-
-        # Tìm kiếm theo tiêu đề task hoặc category
-        if title:
-            query = query.filter(func.lower(Task.title).contains(title.lower()))
-        if category_title:
-            query = query.filter(func.lower(Categories.title).contains(category_title.lower()))
-
-        # Lọc theo trạng thái
-        if status:
-            query = query.filter(Task.status == status)
-
-        # Lọc theo độ ưu tiên
-        if priority:
-            query = query.filter(Task.priority == priority)
-
-        # Lọc theo ngày hạn chót
-        if start_date and end_date:
-            query = query.filter(Task.due_date.between(start_date, end_date))
-        elif start_date:
-            query = query.filter(Task.due_date >= start_date)
-        elif end_date:
-            query = query.filter(Task.due_date <= end_date)
-
-        # Thực thi truy vấn
-        tasks = query.all()
-        if not tasks:
-            raise HTTPException(status_code=404, detail="No tasks found matching the criteria")
-
-        return tasks
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
-
 @router.delete("/{task_id}/categories", response_model=dict)
 def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_user: CurrentUser,):
     """
@@ -278,38 +243,79 @@ def remove_category_from_task(task_id: uuid.UUID, session: SessionDep, current_u
 # fix search
 # ===================
 
+# @router.get("/search", response_model=List[TasksPublic])
+# def search_tasks(
+#     session: SessionDep, 
+#     title: Optional[str] = Query(None),
+#     category_title: Optional[str] = Query(None),
+#     status: Optional[str] = Query(None),
+#     priority: Optional[str] = Query(None),
+#     start_date: Optional[date] = Query(None),
+#     end_date: Optional[date] = Query(None),
+#     categories_id: Optional[uuid.UUID] = None,
+#     current_user: CurrentUser,
+# ):
+#     try :
+#         query = session.query(Task).join(Categories, Task.categories_id == categories_id)
+
+#         # Tìm kiếm theo tiêu đề task hoặc category
+#         if title:
+#             query = query.filter(func.lower(Task.title).contains(title.lower()))
+#         if category_title:
+#             query = query.filter(func.lower(Categories.title).contains(category_title.lower()))
+
+#         # Lọc theo trạng thái
+#         if status:
+#             query = query.filter(Task.status == status)
+
+#         # Lọc theo độ ưu tiên
+#         if priority:
+#             query = query.filter(Task.priority == priority)
+
+#         # Lọc theo ngày hạn chót
+#         if start_date and end_date:
+#             query = query.filter(Task.due_date.between(start_date, end_date))
+#         elif start_date:
+#             query = query.filter(Task.due_date >= start_date)
+#         elif end_date:
+#             query = query.filter(Task.due_date <= end_date)
+
+#         # Thực thi truy vấn
+#         tasks = query.all()
+#         if not tasks:
+#             raise HTTPException(status_code=404, detail="No tasks found matching the criteria")
+#         if not current_user.is_superuser and tasks.owner_id != current_user.id:
+#             raise HTTPException(status_code=400, detail="Not enough permissions")
+#         return tasks
+#     except Exception as e:
+#         session.rollback()
+#         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+
 @router.get("/search", response_model=List[TasksPublic])
 def search_tasks(
     session: SessionDep, 
+    current_user: CurrentUser,
     title: Optional[str] = Query(None),
     category_title: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     priority: Optional[str] = Query(None),
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
-    categories_id: Optional[uuid.UUID] = None
 ):
-    try :
-        """
-        Tìm kiếm và lọc tasks theo tiêu đề, trạng thái, độ ưu tiên, ngày hạn chót.
-        """
-        query = session.query(Task).join(Categories, Task.categories_id == categories_id)
+    try:
+        query = session.query(Task).join(Categories, Task.categories_id == Categories.id)
 
-        # Tìm kiếm theo tiêu đề task hoặc category
         if title:
             query = query.filter(func.lower(Task.title).contains(title.lower()))
         if category_title:
             query = query.filter(func.lower(Categories.title).contains(category_title.lower()))
 
-        # Lọc theo trạng thái
         if status:
             query = query.filter(Task.status == status)
 
-        # Lọc theo độ ưu tiên
         if priority:
             query = query.filter(Task.priority == priority)
 
-        # Lọc theo ngày hạn chót
         if start_date and end_date:
             query = query.filter(Task.due_date.between(start_date, end_date))
         elif start_date:
@@ -317,12 +323,25 @@ def search_tasks(
         elif end_date:
             query = query.filter(Task.due_date <= end_date)
 
-        # Thực thi truy vấn
+        # if categories_id:
+        #     query = query.filter(Task.categories_id == categories_id)
+
         tasks = query.all()
+
         if not tasks:
             raise HTTPException(status_code=404, detail="No tasks found matching the criteria")
-
+        # if not current_user.is_superuser:
+        #     # tasks = [task for task in tasks if task. == current_user.id]
+        #     if not tasks:
+        #         raise HTTPException(status_code=403, detail="Not enough permissions to access these tasks")
+        # if not current_user.is_superuser:
+        #         raise HTTPException(status_code=400, detail="Not enough permissions")
+            
+        for task in tasks:
+            if not current_user.is_superuser:
+                raise HTTPException(status_code=400, detail="Not enough permissions")
         return tasks
+
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

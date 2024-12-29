@@ -36,16 +36,16 @@ function getCategoriesQueryOptions() {
 }
 
 // // Lấy danh sách tasks từ API
-// function getTasksQueryOptions() {
-//   return {
-//     queryFn: () =>
-//       TasksService.readTasks({
-//         skip: 0, // Start from the first page (skip = 0)
-//         limit: PER_PAGE, // Limit the number of tasks per page
-//       }),
-//     queryKey: ["tasks"], // Unique key for the query
-//   };
-// }
+function getTasksQueryOptions() {
+  return {
+    queryFn: () =>
+      TasksService.readTasks({
+        skip: 0, // Start from the first page (skip = 0)
+        limit: PER_PAGE, // Limit the number of tasks per page
+      }),
+    queryKey: ["tasks"], // Unique key for the query
+  };
+}
 
 function Dashboard() {
   const { user: currentUser } = useAuth(); // Giả sử bạn đang sử dụng hook này để lấy thông tin người dùng.
@@ -60,13 +60,13 @@ function Dashboard() {
   });
 
   // Fetch tasks và total count
-  // const {
-  //   data: tasks,
-  //   isLoading: tasksLoading,
-  //   isError: tasksError,
-  // } = useQuery({
-  //   ...getTasksQueryOptions(),
-  // });
+  const {
+    data: tasks,
+    isLoading: tasksLoading,
+    isError: tasksError,
+  } = useQuery({
+    ...getTasksQueryOptions(),
+  });
 
   // Hiển thị loading hoặc lỗi
   if (categoriesLoading ) {
@@ -85,19 +85,19 @@ function Dashboard() {
   const totalCategories = categories?.count || 0; // Dữ liệu trả về có trường 'count'
 
   // Lấy tổng số task từ dữ liệu trả về từ API
-  // const totalTasks = tasks?.count || 0;
-  // const completedTasks =
-  //   tasks?.data.filter((task) => task.status === ETaskStatus.COMPLETED)
-  //     .length || 0;
-  // const pendingTasks =
-  //   tasks?.data.filter((task) => task.status === ETaskStatus.PENDING).length ||
-  //   0;
-  // const inProgressTasks =
-  //   tasks?.data.filter((task) => task.status === ETaskStatus.IN_PROGRESS)
-  //     .length || 0;
-  // const cancelledTasks =
-  //   tasks?.data.filter((task) => task.status === ETaskStatus.CANCELLED)
-  //     .length || 0;
+  const totalTasks = tasks?.count || 0;
+  const completedTasks =
+    tasks?.data.filter((task) => task.status === ETaskStatus.COMPLETED)
+      .length || 0;
+  const pendingTasks =
+    tasks?.data.filter((task) => task.status === ETaskStatus.PENDING).length ||
+    0;
+  const inProgressTasks =
+    tasks?.data.filter((task) => task.status === ETaskStatus.IN_PROGRESS)
+      .length || 0;
+  const cancelledTasks =
+    tasks?.data.filter((task) => task.status === ETaskStatus.CANCELLED)
+      .length || 0;
 
   return (
     <Container maxW="full" p={0} h="100vh">
@@ -132,7 +132,7 @@ function Dashboard() {
                 <StatLabel fontSize="xl" fontWeight="bold" color="purple.700">
                   Tasks
                 </StatLabel>
-                {/* <StatNumber fontSize="3xl">{totalTasks}</StatNumber> */}
+                <StatNumber fontSize="3xl">{totalTasks}</StatNumber>
                 <StatHelpText fontSize="md">Total number of tasks</StatHelpText>
               </Stat>
 
@@ -140,9 +140,9 @@ function Dashboard() {
                 <StatLabel fontSize="xl" fontWeight="bold" color="green.600">
                   Completed Tasks
                 </StatLabel>
-                {/* <StatNumber fontSize="3xl" color="green.500">
+                <StatNumber fontSize="3xl" color="green.500">
                   {completedTasks}
-                </StatNumber> */}
+                </StatNumber>
                 <StatHelpText fontSize="md">
                   Tasks that have been completed
                 </StatHelpText>
@@ -152,9 +152,9 @@ function Dashboard() {
                 <StatLabel fontSize="xl" fontWeight="bold" color="red.600">
                   Pending Tasks
                 </StatLabel>
-                {/* <StatNumber fontSize="3xl" color="red.500">
+                <StatNumber fontSize="3xl" color="red.500">
                   {pendingTasks}
-                </StatNumber> */}
+                </StatNumber>
                 <StatHelpText fontSize="md">
                   Tasks yet to be completed
                 </StatHelpText>
@@ -164,9 +164,9 @@ function Dashboard() {
                 <StatLabel fontSize="xl" fontWeight="bold" color="yellow.600">
                   In Progress Tasks
                 </StatLabel>
-                {/* <StatNumber fontSize="3xl" color="yellow.500">
+                <StatNumber fontSize="3xl" color="yellow.500">
                   {inProgressTasks}
-                </StatNumber> */}
+                </StatNumber>
                 <StatHelpText fontSize="md">
                   Tasks that are in progress
                 </StatHelpText>
@@ -176,9 +176,9 @@ function Dashboard() {
                 <StatLabel fontSize="xl" fontWeight="bold" color="gray.600">
                   Cancelled Tasks
                 </StatLabel>
-                {/* <StatNumber fontSize="3xl" color="gray.500">
+                <StatNumber fontSize="3xl" color="gray.500">
                   {cancelledTasks}
-                </StatNumber> */}
+                </StatNumber>
                 <StatHelpText fontSize="md">
                   Tasks that have been cancelled
                 </StatHelpText>

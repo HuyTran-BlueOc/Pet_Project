@@ -17,9 +17,13 @@ import { TaskPublic, TasksService } from "../../client";
 import ActionsMenu from "../../components/Common/ActionsMenu";
 import AddEditTask from "../../components/Tasks/AddEditTask";
 import DeleteTasksById from "../../components/Tasks/DeleteTasks";
+import EditStatusTask from "../../components/Tasks/EditStatusTask";
 import { PaginationFooter } from "../../components/Common/PaginationFooter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useSelectedTasks } from "../../context/SelectedTasksContext";
+// import SearchTask from "../../components/Tasks/SearchTask";
+import SearchTask from "../../components/Tasks/SearchTask";
 
 const tasksSearchSchema = z.object({
   page: z.number().catch(1),
@@ -44,31 +48,15 @@ function TasksTable() {
   const queryClient = useQueryClient();
   const { page } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+  const [search, setSearch] = useState<string>("");
+
   const setPage = (page: number) =>
     navigate({
       search: (prev: { [key: string]: string }) => ({ ...prev, page }),
     });
 
-  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-
-  
-  
-  const handleDeleteSelectedTasks = async () => {
-    if (selectedTasks.length === 0) {  
-      alert("No tasks selected!");
-      return;
-    }
-    
-    try {
-      await TasksService.deleteTasks({ ids: selectedTasks });
-      setSelectedTasks([]); 
-      queryClient.invalidateQueries({queryKey: ["tasks"]}); 
-      // alert("Deleted selected tasks successfully!");
-    } catch (error) {
-      console.error("Error deleting tasks:", error);
-      // alert("Failed to delete tasks!");
-    }
-  };
+  const { selectedTasks, toggleTaskSelection, selectAllTasks } =
+    useSelectedTasks();
 
   const {
     data: Tasks,
@@ -87,38 +75,49 @@ function TasksTable() {
     }
   }, [page, queryClient, hasNextPage]);
 
-  const toggleTaskSelection = (taskId: string) => {
-        setSelectedTasks((prev) =>
-          prev.includes(taskId)
-            ? prev.filter((id) => id !== taskId)
-            : [...prev, taskId]
-        );
-      };
-
-// console.log("Tasks",)
+  // const toggleTaskSelection = (task: TaskPublic) => {
+  //   setSelectedTasks((prev) =>
+  //     prev.includes(task) ? prev.filter((id) => id !== task) : [...prev, task]
+  //   );
+  // };
 
   return (
     <>
-     <button onClick={handleDeleteSelectedTasks} style={{backgroundColor: "red", padding:"8px", borderRadius:"8px"}}>Delete Selected</button>
+      <SearchTask
+        search={search}
+        onSearchChange={(e: any) => setSearch(e.target.value)}
+      />
       <TableContainer>
         <Table size={{ base: "sm", md: "md" }}>
           <Thead>
             <Tr>
               <Th>
-                <input
+                {/* <input
                   type="checkbox"
                   onChange={(e) => {
                     if (e.target.checked) {
-                      setSelectedTasks(
-                        Tasks?.data.map((task) => task.id) || []
-                      );
+                      setSelectedTasks(Tasks?.data || []);
                     } else {
                       setSelectedTasks([]);
                     }
                   }}
                   checked={
                     (Tasks?.data || []).length > 0 &&
-                    selectedTasks.length === Tasks?.data.length
+                    selectedTasks.length === (Tasks?.data || []).length
+                  }
+                /> */}
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      selectAllTasks(Tasks?.data || []);
+                    } else {
+                      selectAllTasks([]);
+                    }
+                  }}
+                  checked={
+                    (Tasks?.data || []).length > 0 &&
+                    selectedTasks.length === (Tasks?.data || []).length
                   }
                 />
               </Th>
@@ -147,10 +146,20 @@ function TasksTable() {
               {Tasks?.data.map((task: TaskPublic, index: any) => (
                 <Tr key={task.id} opacity={isPlaceholderData ? 0.5 : 1}>
                   <Td>
-                    <input
+                    {/* <input
                       type="checkbox"
                       checked={selectedTasks.includes(task.id)}
                       onChange={() => toggleTaskSelection(task.id)}
+                    /> */}
+                    {/* <input
+                      type="checkbox"
+                      checked={selectedTasks.some((t) => t.id === task.id)}
+                      onChange={() => toggleTaskSelection(task)}
+                    /> */}
+                    <input
+                      type="checkbox"
+                      checked={selectedTasks.some((t) => t.id === task.id)}
+                      onChange={() => toggleTaskSelection(task)}
                     />
                   </Td>
                   <Td isTruncated maxWidth="50px">
@@ -177,14 +186,15 @@ function TasksTable() {
                     isTruncated
                     maxWidth="150px"
                   >
-                    {task.due_date || "N/A"}
+                    {/* {task.due_date || "N/A"} */}
+                    {task?.due_date ? task.due_date.split("T")[0] : "N/A"}
                   </Td>
                   <Td
                     color={!task.due_date ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
                   >
-                    {task.category_title || "N/A"}
+                    {task?.category_title || "N/A"}
                   </Td>
                   <Td>
                     <ActionsMenu type={"Task"} value={task} />
@@ -220,7 +230,8 @@ function Tasks() {
         deleteModalAs={() => (<></>)}
         // update_tasks_status: List[id]          --    --            --navbarPage
         // delete_tasks: List[id]                 --    --            --navbarPage
-        deleteTasks = {DeleteTasksById}
+        deleteTasksModal={DeleteTasksById}
+        editStatusTasksModalAs={EditStatusTask}
       />
       <TasksTable />
     </Container>

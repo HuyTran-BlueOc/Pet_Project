@@ -6,8 +6,8 @@ import {
   MenuList,
   useDisclosure,
 } from "@chakra-ui/react";
-import { BsThreeDotsVertical,} from "react-icons/bs";
-import { FiEdit, FiEye, FiTrash  } from "react-icons/fi";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiEdit, FiEye, FiTrash } from "react-icons/fi";
 
 import type { CategoryPublic, TaskPublic, UserPublic } from "../../client";
 import EditUser from "../Admin/EditUser";
@@ -15,6 +15,8 @@ import EditCategory from "../Categories/EditCategory";
 import Delete from "./DeleteAlert";
 import AddEditTask from "../Tasks/AddEditTask";
 import ViewDetail from "../Tasks/ViewDetail";
+import ViewDetailAndEdit from "../Notes/ViewDetailAndEdit";
+import { FaPlus } from "react-icons/fa";
 import { BiNote } from "react-icons/bi";
 
 interface ActionsMenuProps {
@@ -28,6 +30,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
   const viewNotes = useDisclosure();
   const viewDetailModal = useDisclosure();
   const deleteModal = useDisclosure();
+  const removeCategoryModal = useDisclosure();
 
   return (
     <>
@@ -55,8 +58,6 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
               </MenuItem>
             </>
           )}
-          
-          
           <MenuItem
             onClick={editModal.onOpen}
             icon={<FiEdit fontSize="16px" />}
@@ -101,6 +102,11 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           id={value.id}
           isOpen={viewDetailModal.isOpen}
           onClose={viewDetailModal.onClose}
+        />
+         <ViewDetailAndEdit 
+          id={value.id}
+          isOpen={viewNotes.isOpen}
+          onClose={viewNotes.onClose}
         />
       </Menu>
     </>
