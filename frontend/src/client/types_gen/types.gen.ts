@@ -34,6 +34,11 @@ export type CategoryUpdate = {
   description?: string | null
 }
 
+export interface SearchParams {
+  title?: string
+  description?: string
+}
+
 export type Message = {
   message: string
 }
@@ -103,6 +108,7 @@ export type ValidationError = {
 export type CategoriesReadCategoriesData = {
   limit?: number
   skip?: number
+  search?: string
 }
 
 export type CategoriesReadCategoriesResponse = CategoriesPublic
@@ -134,6 +140,11 @@ export type CategoriesDeleteCategoryResponse = Message
 
 export type CategoriesDeleteCategoriesResponse = Message
 
+export type CategoryReadTaskData = {
+  id: string
+}
+
+export type CategoryReadTaskResponse = CategoryPublic
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token
@@ -146,6 +157,7 @@ export type LoginTestTokenResponse = UserPublic
 export type LoginRecoverPasswordData = {
   email: string
 }
+
 
 export type LoginRecoverPasswordResponse = Message
 

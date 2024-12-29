@@ -1,6 +1,20 @@
 import { CancelablePromise } from "../core/CancelablePromise";
-import { TasksCreateTaskData, TasksCreateTaskResponse, TasksDeleteTaskData, TasksDeleteTaskResponse, TasksDeleteTasksData, TasksReadTaskData, TasksReadTaskResponse, TasksReadTasksData, TasksReadTasksResponse, TasksUpdateTaskData, TasksUpdateTaskResponse } from "../types_gen/tasks.gen";
-import { request as __request } from "../core/request"
+import {
+  TasksCreateTaskData,
+  TasksCreateTaskResponse,
+  TasksDeleteTaskData,
+  TasksDeleteTaskResponse,
+  TasksDeleteTasksData,
+  TasksReadTaskData,
+  TasksReadTaskResponse,
+  TasksReadTasksData,
+  TasksReadTasksResponse,
+  TasksRemoveCategoyFromTaskData,
+  TasksUpdateStatusTasksData,
+  TasksUpdateTaskData,
+  TasksUpdateTaskResponse,
+} from "../types_gen/tasks.gen";
+import { request as __request } from "../core/request";
 import { OpenAPI } from "../core/OpenAPI";
 export class TasksService {
   /**
@@ -13,7 +27,7 @@ export class TasksService {
    * @throws ApiError
    */
   public static readTasks(
-    data: TasksReadTasksData = {},
+    data: TasksReadTasksData = {}
   ): CancelablePromise<TasksReadTasksResponse> {
     return __request(OpenAPI, {
       method: "GET",
@@ -25,7 +39,7 @@ export class TasksService {
       errors: {
         422: "Validation Error",
       },
-    })
+    });
   }
 
   /**
@@ -37,7 +51,7 @@ export class TasksService {
    * @throws ApiError
    */
   public static createTask(
-    data: TasksCreateTaskData,
+    data: TasksCreateTaskData
   ): CancelablePromise<TasksCreateTaskResponse> {
     return __request(OpenAPI, {
       method: "POST",
@@ -47,7 +61,7 @@ export class TasksService {
       errors: {
         422: "Validation Error",
       },
-    })
+    });
   }
 
   /**
@@ -59,7 +73,7 @@ export class TasksService {
    * @throws ApiError
    */
   public static readTask(
-    data: TasksReadTaskData,
+    data: TasksReadTaskData
   ): CancelablePromise<TasksReadTaskResponse> {
     return __request(OpenAPI, {
       method: "GET",
@@ -70,7 +84,7 @@ export class TasksService {
       errors: {
         422: "Validation Error",
       },
-    })
+    });
   }
 
   /**
@@ -83,7 +97,7 @@ export class TasksService {
    * @throws ApiError
    */
   public static updateTask(
-    data: TasksUpdateTaskData,
+    data: TasksUpdateTaskData
   ): CancelablePromise<TasksUpdateTaskResponse> {
     return __request(OpenAPI, {
       method: "PUT",
@@ -96,7 +110,28 @@ export class TasksService {
       errors: {
         422: "Validation Error",
       },
-    })
+    });
+  }
+
+  public static updateStatusTasks(
+    data: TasksUpdateStatusTasksData
+  ): CancelablePromise<TasksUpdateTaskResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/tasks/status",
+      // path: {
+      //   id: data.id,
+      // },
+      // body: data.requestBody, query: {
+      query: {
+        task_ids: data.ids,
+        status: data.status,
+      },
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    });
   }
 
   // /**
@@ -108,9 +143,9 @@ export class TasksService {
   //  * @throws ApiError
   //  */
   public static deleteTask(
-    data: TasksDeleteTaskData,
+    data: TasksDeleteTaskData
   ): CancelablePromise<TasksDeleteTaskResponse> {
-    console.log("data.task.id", data.id)
+    console.log("data.task.id", data.id);
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/tasks/{id}",
@@ -120,11 +155,27 @@ export class TasksService {
       errors: {
         422: "Validation Error",
       },
-    })
+    });
+  }
+
+  public static removeCategoryfromTask(
+    data: TasksRemoveCategoyFromTaskData
+  ): CancelablePromise<TasksDeleteTaskResponse> {
+    console.log("data.task.id", data.id);
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/tasks/{id}/categories",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    });
   }
 
   public static deleteTasks(
-    data: TasksDeleteTasksData,
+    data: TasksDeleteTasksData
   ): CancelablePromise<TasksDeleteTaskResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
@@ -132,12 +183,12 @@ export class TasksService {
       // path: {
       //   id: data?.ids
       //   // id: data?.ids.map(id=>id),
-        
+
       // },
       body: data.ids,
       errors: {
         422: "Validation Error",
       },
-    })
+    });
   }
 }

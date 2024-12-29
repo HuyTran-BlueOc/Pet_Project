@@ -45,6 +45,8 @@ import type {
   CategoriesDeleteCategoryResponse,
   CategoriesDeleteCategoriesResponse,
   CategoriesCreateCategoriesResponse,
+  CategoryReadTaskData,
+  CategoryReadTaskResponse,
 } from "../types_gen/types.gen"
 
 // Category 
@@ -68,6 +70,7 @@ export class CategoriesService {
       query: {
         skip: data.skip,
         limit: data.limit,
+        search: data.search,
       },
       errors: {
         422: "Validation Error",
@@ -75,6 +78,20 @@ export class CategoriesService {
     })
   }
 
+  public static Categoryreadtask(
+    data: CategoryReadTaskData,
+  ): CancelablePromise<CategoryReadTaskResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/categories/{id}/task",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
   /**
    * Create Category
    * Create new Category.
@@ -104,22 +121,7 @@ export class CategoriesService {
    * @param data.id
    * @returns ItemPublic Successful Response
    * @throws ApiError
-   */
-  public static readCategory(
-    data: CategoriesReadCategoryData,
-  ): CancelablePromise<CategoriesReadCategoryResponse> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/categories/{id}",
-      path: {
-        id: data.id,
-      },
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
+   *
   /**
    * Update Category
    * Update an Category.
@@ -186,8 +188,8 @@ export class CategoriesService {
       },
     });
   }
-}
 
+}
 
 // fix Note
 export class NotesService {

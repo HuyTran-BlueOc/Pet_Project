@@ -15,7 +15,7 @@ import EditCategory from "../Categories/EditCategory";
 import Delete from "./DeleteAlert";
 import AddEditTask from "../Tasks/AddEditTask";
 import ViewDetail from "../Tasks/ViewDetail";
-import { FaPlus } from "react-icons/fa";
+import RemoveCatrgoryFromTask from "../Tasks/RemoveCategory";
 
 interface ActionsMenuProps {
   type: string;
@@ -27,6 +27,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
   const editModal = useDisclosure();
   const viewDetailModal = useDisclosure();
   const deleteModal = useDisclosure();
+  const removeCategoryModal = useDisclosure();
 
   return (
     <>
@@ -39,15 +40,25 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         />
         <MenuList>
           {type == "Task" && (
-            <MenuItem
-              onClick={viewDetailModal.onOpen}
-              icon={<FiEye  fontSize="16px" />}
-            >
-              View detail task
-            </MenuItem>
+            <>
+              <MenuItem
+                onClick={viewDetailModal.onOpen}
+                icon={<FiEye fontSize="16px" />}
+              >
+                View detail task
+              </MenuItem>
+              <MenuItem
+                onClick={removeCategoryModal.onOpen}
+                icon={<FiTrash fontSize="16px" />}
+                isDisabled={!("categories_id" in value && value.categories_id)}
+                opacity={
+                  !("categories_id" in value && value.categories_id) ? 0.5 : 1
+                }
+              >
+                Remove category task
+              </MenuItem>
+            </>
           )}
-          
-          
           <MenuItem
             onClick={editModal.onOpen}
             icon={<FiEdit fontSize="16px" />}
@@ -93,8 +104,11 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           isOpen={viewDetailModal.isOpen}
           onClose={viewDetailModal.onClose}
         />
-        
-        
+        <RemoveCatrgoryFromTask
+          id={value.id}
+          isOpen={removeCategoryModal.isOpen}
+          onClose={removeCategoryModal.onClose}
+        />
       </Menu>
     </>
   );

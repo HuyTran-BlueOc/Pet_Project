@@ -1,26 +1,12 @@
 import { Message } from "./types.gen";
 
-// ========================
-// don't use
-// ========================
-
-// export type TaskCreate = {
-//   title: string;
-//   description?: string | null;
-//   status:ETaskStatus;
-//   priority:ETaskPriority;
-//   due_date?: string;
-//   categories_id?:string | null;
-// };
-
 export type TaskInit = {
   title: string;
   description?: string | null;
-  status:ETaskStatus;
-  priority:ETaskPriority;
+  status: ETaskStatus;
+  priority: ETaskPriority;
   due_date?: string;
-  categories_id?:string | null;
-  categories_title?:string | null;
+  categories_id?: string | null;
 };
 
 export type TaskPublic = {
@@ -28,25 +14,19 @@ export type TaskPublic = {
   description?: string | null;
   id: string;
   owner_id: string;
-  status:ETaskStatus;
-  priority:ETaskPriority;
+  status: ETaskStatus;
+  priority: ETaskPriority;
   due_date?: string;
-  categories_id?:string;
-  created_at:string;
-  updated_at:string;
-  category_title?:string | null;
+  categories_id?: string;
+  created_at: string;
+  updated_at: string;
+  category_title?: string | null;
 };
 
 export type TasksPublic = {
   data: Array<TaskPublic>;
   count: number;
 };
-
-// ========================
-// don't use
-// ========================
-
-// export type TaskUpdate = TaskCreate
 
 export type TasksReadTasksData = {
   limit?: number;
@@ -74,9 +54,23 @@ export type TasksUpdateTaskData = {
   requestBody: TaskInit;
 };
 
+export type TasksUpdateStatusTasksData = {
+  ids: string[];
+  status: ETaskStatus;
+};
+
+// export type TasksUpdateStatusTasksResponse = {
+//   id: string[];
+//   status: ETaskStatus;
+// };
+
 export type TasksUpdateTaskResponse = TaskPublic;
 
 export type TasksDeleteTaskData = {
+  id: string;
+};
+
+export type TasksRemoveCategoyFromTaskData = {
   id: string;
 };
 
@@ -85,8 +79,6 @@ export type TasksDeleteTasksData = {
 };
 
 export type TasksDeleteTaskResponse = Message;
-
-// export type TasksDeleteTasksResponse = Message;
 
 //=====================
 // Enum Task

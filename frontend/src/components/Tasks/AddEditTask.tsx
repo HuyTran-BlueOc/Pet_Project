@@ -72,6 +72,7 @@ function AddEditTask(props: AddEditTaskProps) {
   const mutation = useMutation({
     mutationFn: (data: TaskInit) => {
       if (task?.id) {
+        // const editData = {...data, data?.categories_id && data?.categories_id = null}
         return TasksService.updateTask({
           id: task.id,
           requestBody: data,
@@ -97,9 +98,16 @@ function AddEditTask(props: AddEditTaskProps) {
   });
 
   const onSubmit: SubmitHandler<TaskInit> = (data) => {
-    const taskData = { ...data };
-    console.log("taskData", taskData);
-    mutation.mutate(data);
+    let editData = data
+    if (data?.categories_id === "") {
+      editData = { ...data, categories_id: null };
+      // editData = { ...data, categories_id: null, category_title: "" };
+    }
+    // data?.categories_id=="" &&  editData = { ...data, categories_id: null, category_title: "" };
+    console.log("data.categories_id", data.categories_id);
+    console.log("editData", editData);
+    console.log("data", data);
+    mutation.mutate(task ? editData : data);
   };
 
   return (
@@ -167,12 +175,25 @@ function AddEditTask(props: AddEditTaskProps) {
 
           <FormControl mt={4}>
             <FormLabel htmlFor="due_date">Due Date</FormLabel>
-            <Input
+            {/* <Input
               id="due_date"
+              value={task && task?.due_date}
               {...register("due_date")}
               placeholder="Enter due date"
               type="date"
-            />
+            /> */}
+            <div>
+              <Input
+                id="due_date"
+                value={task?.due_date && task?.due_date.split("T")[0]}
+                {...register("due_date", { required: "Due date is required" })}
+                placeholder="Enter due date"
+                type="date"
+              />
+              {errors.due_date && (
+                <span style={{ color: "red" }}>{errors.due_date.message}</span>
+              )}
+            </div>
           </FormControl>
           <FormControl mt={4}>
             <FormLabel htmlFor="categories_id">Category ID</FormLabel>
