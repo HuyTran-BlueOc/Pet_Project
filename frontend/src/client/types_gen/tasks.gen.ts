@@ -31,6 +31,7 @@ export type TasksPublic = {
 export type TasksReadTasksData = {
   limit?: number;
   skip?: number;
+  search?: string
 };
 
 export type TasksReadTasksResponse = TasksPublic;

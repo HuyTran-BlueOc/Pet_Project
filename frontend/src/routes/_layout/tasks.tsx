@@ -20,7 +20,7 @@ import DeleteTasksById from "../../components/Tasks/DeleteTasks";
 import EditStatusTask from "../../components/Tasks/EditStatusTask";
 import { PaginationFooter } from "../../components/Common/PaginationFooter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSelectedTasks } from "../../context/SelectedTasksContext";
 // import SearchTask from "../../components/Tasks/SearchTask";
 import SearchTask from "../../components/Tasks/SearchTask";
@@ -36,11 +36,21 @@ export const Route = createFileRoute("/_layout/tasks")({
 
 const PER_PAGE = 10;
 
-function getTasksQueryOptions({ page }: { page: number }) {
+function getTasksQueryOptions({
+  page,
+  search,
+}: {
+  page: number;
+  search: string;
+}) {
   return {
     queryFn: () =>
-      TasksService.readTasks({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-    queryKey: ["tasks", { page }],
+      TasksService.readTasks({
+        skip: (page - 1) * PER_PAGE,
+        limit: PER_PAGE,
+        search: search || undefined,
+      }),
+    queryKey: ["tasks", { page, search }],
   };
 }
 
@@ -49,21 +59,41 @@ function TasksTable() {
   const { page } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
 
   const setPage = (page: number) =>
     navigate({
-      search: (prev: { [key: string]: string }) => ({ ...prev, page }),
+      search: (prev: { [key: string]: string }) => ({ ...prev, page, search }),
     });
 
   const { selectedTasks, toggleTaskSelection, selectAllTasks } =
     useSelectedTasks();
+
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current); // Clear the previous timeout
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(search); // Set the debounced search term after delay
+    }, 500); // 500ms delay before applying the search
+
+    // Clean up on unmount
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [search]); // When search changes, trigger debounce effect
 
   const {
     data: Tasks,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getTasksQueryOptions({ page }),
+    ...getTasksQueryOptions({ page, search: debouncedSearch }),
     placeholderData: (prevData) => prevData,
   });
   const hasNextPage = !isPlaceholderData && Tasks?.data.length === PER_PAGE;
@@ -71,7 +101,9 @@ function TasksTable() {
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getTasksQueryOptions({ page: page + 1 }));
+      queryClient.prefetchQuery(
+        getTasksQueryOptions({ page: page + 1, search: debouncedSearch })
+      );
     }
   }, [page, queryClient, hasNextPage]);
 
@@ -227,7 +259,7 @@ function Tasks() {
       <Navbar
         type={"Task"}
         addModalAs={AddEditTask}
-        deleteModalAs={() => (<></>)}
+        deleteModalAs={() => <></>}
         // update_tasks_status: List[id]          --    --            --navbarPage
         // delete_tasks: List[id]                 --    --            --navbarPage
         deleteTasksModal={DeleteTasksById}

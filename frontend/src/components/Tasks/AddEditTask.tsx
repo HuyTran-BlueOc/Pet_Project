@@ -188,7 +188,7 @@ function AddEditTask(props: AddEditTaskProps) {
                 value={task?.due_date && task?.due_date.split("T")[0]}
                 {...register("due_date", { required: "Due date is required" })}
                 placeholder="Enter due date"
-                type="date"
+                type="datetime-local"
               />
               {errors.due_date && (
                 <span style={{ color: "red" }}>{errors.due_date.message}</span>

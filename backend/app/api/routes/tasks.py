@@ -15,24 +15,37 @@ def get_tasks_by_owner(
     session: SessionDep, 
     current_user: CurrentUser, 
     skip: int = 0, 
-    limit: int = 99999
+    limit: int = 100,
+    search: Optional[str] = None
 ) -> Any:
     try:
-        # Query để lấy tasks cùng với category (nếu có)
+        # Initialize the base filter condition
+        filter_condition = Task.owner_id == current_user.id
+
+        # Add search conditions if search is provided
+        if search:
+            search_filter = (
+                (Task.title.ilike(f"%{search}%")) | 
+                (Task.description.ilike(f"%{search}%"))
+                
+            )
+            filter_condition = filter_condition & search_filter
+
+        # Query to get tasks along with category (if any)
         statement = (
-            select(Task, Categories)  # Lấy cả Task và Categories
-            .join(Categories, Task.categories_id == Categories.id, isouter=True)  # Outer join để bao gồm cả task không có category
-            .where(Task.owner_id == current_user.id)
+            select(Task, Categories)  # Select both Task and Categories
+            .join(Categories, Task.categories_id == Categories.id, isouter=True)  # Outer join for tasks without categories
+            .where(filter_condition)
             .offset(skip)
             .limit(limit)
         )
         results = session.exec(statement).all()
 
-        # Lấy tổng số lượng task
-        count_statement = select(func.count()).where(Task.owner_id == current_user.id).select_from(Task)
-        count = session.exec(count_statement).one()
+        # Query to count total tasks
+        count_statement = select(func.count()).where(filter_condition).select_from(Task)
+        task_count = session.execute(count_statement).scalar_one()
 
-        # Map kết quả để bao gồm cả task không có category
+        # Map results to include tasks without categories
         tasks = [
             TaskPublic(
                 id=result.Task.id,
@@ -45,12 +58,12 @@ def get_tasks_by_owner(
                 due_date=result.Task.due_date,
                 created_at=result.Task.created_at,
                 updated_at=result.Task.updated_at,
-                category_title=result.Categories.title if result.Categories else ""  # Kiểm tra nếu Categories tồn tại
+                category_title=result.Categories.title if result.Categories else ""  # Check if Categories exists
             )
             for result in results
         ]
 
-        return TasksPublic(data=tasks, count=count)
+        return TasksPublic(data=tasks, count=task_count, task_count=task_count)
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")

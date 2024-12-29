@@ -126,7 +126,6 @@ function CategoriesTable() {
       <SearchCategory
         search={search}
         onSearchChange={(e) => setSearch(e.target.value)}
-        
       />
       <TableContainer>
         <Table size={{ base: "sm", md: "md"}}>

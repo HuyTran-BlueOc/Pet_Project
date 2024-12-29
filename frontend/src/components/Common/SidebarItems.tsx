@@ -9,7 +9,7 @@ const items = [
   { icon: FiHome, title: "Dashboard", path: "/" },
   { icon: FiBriefcase, title: "Tasks", path: "/tasks" },
   { icon: BiCategoryAlt, title: "Categories", path: "/categories" },
-  { icon: FiBell  , title: "Reminders", path: "/reminders"},
+  // { icon: FiBell  , title: "Reminders", path: "/reminders"},
   { icon: FiSettings, title: "User Settings", path: "/settings" }
 ];
 

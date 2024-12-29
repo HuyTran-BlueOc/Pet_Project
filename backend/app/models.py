@@ -68,7 +68,7 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     categories: list["Categories"] = Relationship(back_populates="owner", cascade_delete=True)
-    # notes: list["Notes"] = Relationship(back_populates="owner", cascade_delete=True)
+    notes: list["Notes"] = Relationship(back_populates="owner", cascade_delete=True)
     tasks: list["Task"] = Relationship(back_populates="owner", cascade_delete=True)
 
 # Properties to return via API, id is always required
@@ -157,7 +157,7 @@ class Task(TaskBase, table=True):
     categories_id: Optional[uuid.UUID] = Field(foreign_key="categories.id", nullable=True)
     owner: Optional[User] = Relationship(back_populates="tasks")
     category: Optional[Categories] = Relationship(back_populates="tasks")
-    # note: list["Notes"] = Relationship(back_populates="task", cascade_delete=True)
+    note: list["Notes"] = Relationship(back_populates="task", cascade_delete=True)
     
 class TaskPublic(TaskBase):
     id: uuid.UUID
@@ -170,48 +170,53 @@ class TasksPublic(SQLModel):
     data: list[TaskPublic]
     count: int
     
+
+
+
 class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
+
+
 
 
 # =========================
 # NOTES MODELS
 # =========================
 
-# # Shared properties
-# class NoteBase(SQLModel):
-#     title: str = Field(min_length=1, max_length=255)
-#     description: str | None = Field(default=None, max_length=255)
+# Shared properties
+class NoteBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
 
-# # Properties to receive on item creation
-# class NoteCreate(NoteBase):
-#     pass
+# Properties to receive on item creation
+class NoteCreate(NoteBase):
+    pass
 
-# class NoteUpdate(SQLModel):
-#     title: Optional[str] = Field(default=None, min_length=1, max_length=255)
-#     description: Optional[str] = None
+class NoteUpdate(SQLModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    description: Optional[str] = None
     
-# # Database model, database table inferred from class name
-# class Notes(NoteBase, table=True):
-#     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)  # UUID primary key
-#     task:  Optional[Task]= Relationship(back_populates="note")
-#     task_id: uuid.UUID = Field(foreign_key="task.id", nullable=False, ondelete="CASCADE")
-#     owner: Optional[User] = Relationship(back_populates="notes")
-#     owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+# Database model, database table inferred from class name
+class Notes(NoteBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)  # UUID primary key
+    task:  Optional[Task]= Relationship(back_populates="note")
+    task_id: uuid.UUID = Field(foreign_key="task.id", nullable=False, ondelete="CASCADE")
+    owner: Optional[User] = Relationship(back_populates="notes")
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
 
-# # Properties to return via API, id is always required
-# class NotePublic(NoteBase):
-#     id: uuid.UUID
-#     title: str
-#     description: str | None
-#     task_id: uuid.UUID
-#     owner_id: uuid.UUID
+# Properties to return via API, id is always required
+class NotePublic(NoteBase):
+    id: uuid.UUID
+    title: str
+    description: str | None
+    task_id: uuid.UUID
+    owner_id: uuid.UUID
 
 
-# class NotesPublic(SQLModel):
-#     data: list[NotePublic]
-#     count: int
+class NotesPublic(SQLModel):
+    data: list[NotePublic]
+    count: int
 
 
 # =========================
