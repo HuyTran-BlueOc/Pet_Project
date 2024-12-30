@@ -48,13 +48,16 @@ const CategoryTasks = ({
     task?.categories_id?.includes(categoryId ?? "")
   );
 
-  // Format due_date to display only the date (MM/DD/YYYY)
+  // Format due_date to display both date and time
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) {
       return "N/A"; // Fallback if date is undefined
     }
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US");
+    return date.toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }); // Includes both date and time
   };
 
   // Function to color status based on the value
@@ -69,7 +72,7 @@ const CategoryTasks = ({
       case "Cancelled":
         return "gray.500"; // Gray for cancelled
       default:
-        return "while"; // Default black color if status is unknown
+        return "black"; // Default black color if status is unknown
     }
   };
 
@@ -86,7 +89,7 @@ const CategoryTasks = ({
               <Spinner size="xl" />
             </Box>
           ) : error ? (
-            <Box color="red.500">{`Error: ${error}`}</Box>
+            <Box color="red.500">{`Error: ${error.message}`}</Box>
           ) : filteredTasks && filteredTasks.length > 0 ? (
             <TableContainer>
               <Table variant="simple" width="100%">
@@ -103,7 +106,9 @@ const CategoryTasks = ({
                   {filteredTasks.map((task) => (
                     <Tr key={task.id}>
                       <Td>{task.title}</Td>
-                      <Td style={{ wordBreak: "break-word", whiteSpace: "normal" }}>
+                      <Td
+                        style={{ wordBreak: "break-word", whiteSpace: "normal" }}
+                      >
                         {task.description || "N/A"}
                       </Td>
                       <Td>{task.priority}</Td>

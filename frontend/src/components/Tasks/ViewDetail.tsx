@@ -7,6 +7,10 @@ import {
   AlertDialogOverlay,
   Button,
   Spinner,
+  Box,
+  Text,
+  Stack,
+  Divider,
 } from "@chakra-ui/react";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -50,51 +54,75 @@ const TaskDetail = ({ id, isOpen, onClose }: TaskDetailProps) => {
     >
       <AlertDialogOverlay>
         <AlertDialogContent>
-          <AlertDialogHeader>Task Details</AlertDialogHeader>
+          <AlertDialogHeader textAlign="center" fontSize="lg" fontWeight="bold">
+            Task Details
+          </AlertDialogHeader>
           <AlertDialogBody>
             {isLoading ? (
-              <Spinner size="lg" />
+              <Box display="flex" justifyContent="center" alignItems="center">
+                <Spinner size="lg" />
+              </Box>
             ) : error ? (
-              <p>Failed to load task details. Please try again later.</p>
+              <Box textAlign="center" color="red.500">
+                <Text>Failed to load task details. Please try again later.</Text>
+              </Box>
             ) : data ? (
-              <div>
-                <p>
-                  <strong>Title:</strong> {data.title}
-                </p>
-                <p>
-                  <strong>Description:</strong> {data.description || "N/A"}
-                </p>
-                <p>
-                  <strong>Status:</strong> {data.status}
-                </p>
-                <p>
-                  <strong>Priority:</strong> {data.priority}
-                </p>
-                <p>
-                  <strong>Due Date:</strong>{" "}
-                  {data.due_date
-                    ? new Date(data.due_date).toLocaleString()
-                    : "N/A"}
-                </p>
-                <p>
-                  <strong>Created At:</strong>{" "}
-                  {data.created_at
-                    ? new Date(data.created_at).toLocaleString()
-                    : "N/A"}
-                </p>
-                <p>
-                  <strong>Updated At:</strong>{" "}
-                  {data.updated_at
-                    ? new Date(data.updated_at).toLocaleString()
-                    : "N/A"}
-                </p>
-              </div>
+              <Stack spacing={4}>
+                <Box>
+                  <Text fontWeight="bold">Title:</Text>
+                  <Text>{data.title || "N/A"}</Text>
+                </Box>
+                <Divider />
+                <Box>
+                  <Text fontWeight="bold">Description:</Text>
+                  <Text>{data.description || "N/A"}</Text>
+                </Box>
+                <Divider />
+                <Box>
+                  <Text fontWeight="bold">Status:</Text>
+                  <Text>{data.status || "N/A"}</Text>
+                </Box>
+                <Divider />
+                <Box>
+                  <Text fontWeight="bold">Priority:</Text>
+                  <Text>{data.priority || "N/A"}</Text>
+                </Box>
+                <Divider />
+                <Box>
+                  <Text fontWeight="bold">Due Date:</Text>
+                  <Text>
+                    {data.due_date
+                      ? new Date(data.due_date).toLocaleString()
+                      : "N/A"}
+                  </Text>
+                </Box>
+                <Divider />
+                <Box>
+                  <Text fontWeight="bold">Created At:</Text>
+                  <Text>
+                    {data.created_at
+                      ? new Date(data.created_at).toLocaleString()
+                      : "N/A"}
+                  </Text>
+                </Box>
+                <Divider />
+                <Box>
+                  <Text fontWeight="bold">Updated At:</Text>
+                  <Text>
+                    {data.updated_at
+                      ? new Date(data.updated_at).toLocaleString()
+                      : "N/A"}
+                  </Text>
+                </Box>
+              </Stack>
             ) : (
-              <p>No task details available.</p>
+              <Box textAlign="center">
+                <Text>No task details available.</Text>
+              </Box>
             )}
           </AlertDialogBody>
-          <AlertDialogFooter gap={3}>
-            <Button ref={cancelRef} onClick={onClose}>
+          <AlertDialogFooter justifyContent="center">
+            <Button ref={cancelRef} onClick={onClose} colorScheme="blue">
               Close
             </Button>
           </AlertDialogFooter>

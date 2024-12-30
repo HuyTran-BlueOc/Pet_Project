@@ -32,7 +32,7 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
     onSuccess: () => {
       showToast(
         "Success",
-        "All categories were deleted successfully.",
+        "All tasks were deleted successfully.",
         "success"
       );
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -41,7 +41,7 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
     onError: () => {
       showToast(
         "Error",
-        "An error occurred while deleting all categories.",
+        "An error occurred while deleting all tasks.",
         "error"
       );
     },
@@ -79,7 +79,7 @@ const DeleteTasksById = ({ isOpen, onClose }: DeleteTasksProps) => {
             <br />
             <strong>Priority:</strong> {data.priority}
           </p> */}
-          Are you sure you want to delete all categories? This action cannot be
+          Are you sure you want to delete all tasks? This action cannot be
           undone.
         </ModalBody>
         <ModalFooter gap={3}>

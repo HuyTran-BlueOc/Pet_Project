@@ -68,10 +68,6 @@ function Dashboard() {
     ...getTasksQueryOptions(),
   });
 
-  // Hiển thị loading hoặc lỗi
-  if (categoriesLoading ) {
-    return <Spinner size="xl" />;
-  }
 
   if (categoriesError) {
     return (

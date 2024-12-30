@@ -5,10 +5,9 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 from app.core.config import settings
 from app.api import cronjob
-from fastapi import WebSocket
 from typing import Annotated
-from fastapi import APIRouter, Depends
-
+from fastapi import APIRouter, Depends, WebSocket
+import asyncio
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
@@ -21,15 +20,16 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )
-# @app.websocket("/ws")
-# async def websocket_endpoint(websocket: WebSocket):
-#     b= Annotated[cronjob.cronjob, Depends()]
-#     await websocket.accept()
-#     while(True):
-#         if b:  
-#             await websocket.send_text(f"You have overdue tasks!")
-    
-    
+# @app.websocket("/ws") 
+# async def websocket_endpoint(websocket: WebSocket): 
+#     b = Annotated[cronjob.cronjob, Depends()] 
+#     await websocket.accept() 
+#     while True: 
+#         if b: 
+#             await websocket.send_text("You have overdue tasks!") 
+#             await asyncio.sleep(60) # Chỉ gửi thông báo mỗi phút 
+#         else: 
+#             await asyncio.sleep(10) 
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
